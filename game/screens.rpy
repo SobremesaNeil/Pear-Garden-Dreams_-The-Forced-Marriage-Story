@@ -1595,3 +1595,48 @@ style slider_vbox:
 style slider_slider:
     variant "small"
     xsize 900
+
+# QTE 判定条 screen
+screen qte_bar(time_limit=3.0):
+    
+    # 初始化 QTE 开始时间
+    default start_time = renpy.get_game_runtime()
+    
+    # 模态框，阻止其他输入
+    modal True
+    
+    # 计算剩余时间
+    $ elapsed_time = renpy.get_game_runtime() - start_time
+    $ qte_time = max(0, time_limit - elapsed_time)
+    
+    # 显示剩余时间的 bar
+    vbox:
+        xpos 0.5
+        ypos 0.4
+        xanchor 0.5
+        yanchor 0.5
+        spacing 20
+        
+        text "QTE 校准时间：{:.1f} 秒".format(qte_time) size 24 xalign 0.5
+        
+        # 倒计时条
+        bar value qte_time range time_limit:
+            xsize 400
+            ysize 30
+        
+        hbox:
+            spacing 20
+            xalign 0.5
+            
+            # 按钮1：点击校准
+            textbutton "[点击校准]":
+                xsize 150
+                action Return("success")
+            
+            # 按钮2：一键开挂
+            textbutton "[一键开挂]":
+                xsize 150
+                action Return("cheat")
+    
+    # 使用 timer 递减时间
+    timer time_limit action Return("fail")
