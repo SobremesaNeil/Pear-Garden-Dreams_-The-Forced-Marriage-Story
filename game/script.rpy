@@ -1,4 +1,39 @@
-﻿# 游戏的脚本可置于此文件中。
+﻿# OOC UI 脸谱状态显示屏幕，带有动画效果
+screen ooc_ui():
+    zorder 100
+    
+    if ooc_value >= 100:
+        # 100%：显示特殊状态，准备跳转到 Death 标签
+        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) at heartbeat_red
+        text "脸谱已经完全碎裂..." xpos 0.5 ypos 0.5 xanchor 0.5 yanchor 0.5 size 30 color "#FFFFFF" at ooc_fadein
+    elif ooc_value >= 71:
+        # 71-99%：危险区，加红色暗角覆盖层，使用心跳动画
+        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) at heartbeat_red
+        text "[危险区] 脸谱大面积碎裂" xpos 20 ypos 20 size 20 color "#FF0000" at ooc_fadein
+    elif ooc_value >= 31:
+        # 31-70%：警告区
+        text "[警告区] 脸谱出现裂纹" xpos 20 ypos 20 size 20 color "#FFFF00" at ooc_fadein
+    else:
+        # 0-30%：安全区
+        text "[安全区] 脸谱完整" xpos 20 ypos 20 size 20 color "#FFFFFF" at ooc_fadein        hbox:
+            spacing 50
+            xalign 0.5
+            background Solid("#000000AA")
+            padding (20, 10)
+            
+            # 按钮1：点击校准
+            textbutton "[点击校准]":
+                xsize 150
+                text_idle_color "#FFFFFF"
+                text_hover_color "#FFD700"
+                action Return("success")
+            
+            # 按钮2：一键开挂
+            textbutton "[一键开挂]":
+                xsize 150
+                text_idle_color "#FFFFFF"
+                text_hover_color "#FFD700"
+                action Return("cheat")# 游戏的脚本可置于此文件中。
 
 # 声明此游戏使用的角色。颜色参数可使角色姓名着色。
 
@@ -24,25 +59,6 @@ def update_ooc(amount):
     else:
         # 正常情况下，按照 amount 修改 ooc_value，并确保在 0-100 之间
         ooc_value = max(0, min(100, ooc_value + amount))
-
-# 定义 ooc_ui screen，用于显示脸谱状态。
-screen ooc_ui():
-    zorder 100
-    
-    if ooc_value >= 100:
-        # 100%：显示特殊状态，准备跳转到 Death 标签
-        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) alpha 0.5
-        text "脸谱已经完全碎裂..." xpos 0.5 ypos 0.5 xanchor 0.5 yanchor 0.5 size 30 color "#FFFFFF"
-    elif ooc_value >= 71:
-        # 71-99%：危险区，加红色暗角覆盖层
-        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) alpha 0.3
-        text "[危险区] 脸谱大面积碎裂" xpos 20 ypos 20 size 20 color "#FF0000"
-    elif ooc_value >= 31:
-        # 31-70%：警告区
-        text "[警告区] 脸谱出现裂纹" xpos 20 ypos 20 size 20 color "#FFFF00"
-    else:
-        # 0-30%：安全区
-        text "[安全区] 脸谱完整" xpos 20 ypos 20 size 20 color "#FFFFFF"
 
 # 游戏在此开始。
 

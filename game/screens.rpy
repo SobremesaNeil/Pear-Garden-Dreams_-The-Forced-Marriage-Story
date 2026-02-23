@@ -6,6 +6,38 @@ init offset = -1
 
 
 ################################################################################
+## ATL 动画变换
+################################################################################
+
+# OOC UI 淡入动画
+transform ooc_fadein:
+    alpha 0.0
+    linear 0.5 alpha 1.0
+
+# OOC UI 心跳红色遮罩动画
+transform heartbeat_red:
+    alpha 0.2
+    block:
+        ease 0.8 alpha 0.6
+        ease 0.8 alpha 0.2
+        repeat
+
+# QTE 急促不安的抖动效果
+transform qte_panic:
+    xoffset -2
+    block:
+        linear 0.1 xoffset 2
+        linear 0.1 xoffset -2
+        repeat
+
+# QTE 顺滑弹出效果
+transform qte_appear:
+    alpha 0.0
+    ypos 0.3
+    linear 0.3 alpha 1.0 ypos 0.4
+
+
+################################################################################
 ## 样式
 ################################################################################
 
@@ -1599,44 +1631,63 @@ style slider_slider:
 # QTE 判定条 screen
 screen qte_bar(time_limit=3.0):
     
-    # 初始化 QTE 开始时间
-    default start_time = renpy.get_game_runtime()
-    
     # 模态框，阻止其他输入
     modal True
     
-    # 计算剩余时间
-    $ elapsed_time = renpy.get_game_runtime() - start_time
-    $ qte_time = max(0, time_limit - elapsed_time)
-    
-    # 显示剩余时间的 bar
-    vbox:
+    # 显示动态递减的进度条
+    vbox at qte_appear:
         xpos 0.5
         ypos 0.4
         xanchor 0.5
         yanchor 0.5
         spacing 20
         
-        text "QTE 校准时间：{:.1f} 秒".format(qte_time) size 24 xalign 0.5
+        text "QTE 校准时间" size 24 xalign 0.5 at qte_panic
         
-        # 倒计时条
-        bar value qte_time range time_limit:
+        # 平滑递减的倒计时条
+        bar value AnimatedValue(value=0, range=time_limit, delay=time_limit, old_value=time_limit):
             xsize 400
             ysize 30
         
         hbox:
-            spacing 20
+            spacing 50
             xalign 0.5
+            background Solid("#000000AA")
+            padding (20, 10)
             
             # 按钮1：点击校准
             textbutton "[点击校准]":
                 xsize 150
+                text_idle_color "#FFFFFF"
+                text_hover_color "#FFD700"
                 action Return("success")
             
             # 按钮2：一键开挂
             textbutton "[一键开挂]":
                 xsize 150
+                text_idle_color "#FFFFFF"
+                text_hover_color "#FFD700"
                 action Return("cheat")
     
-    # 使用 timer 递减时间
+    # 使用 timer 递减时间，时间结束时返回 "fail"
     timer time_limit action Return("fail")
+
+
+# OOC UI 脸谱状态显示屏幕，带有动画效果
+screen ooc_ui():
+    zorder 100
+    
+    if ooc_value >= 100:
+        # 100%：显示特殊状态，准备跳转到 Death 标签
+        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) at heartbeat_red
+        text "脸谱已经完全碎裂..." xpos 0.5 ypos 0.5 xanchor 0.5 yanchor 0.5 size 30 color "#FFFFFF" at ooc_fadein
+    elif ooc_value >= 71:
+        # 71-99%：危险区，加红色暗角覆盖层，使用心跳动画
+        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) at heartbeat_red
+        text "[危险区] 脸谱大面积碎裂" xpos 20 ypos 20 size 20 color "#FF0000" at ooc_fadein
+    elif ooc_value >= 31:
+        # 31-70%：警告区
+        text "[警告区] 脸谱出现裂纹" xpos 20 ypos 20 size 20 color "#FFFF00" at ooc_fadein
+    else:
+        # 0-30%：安全区
+        text "[安全区] 脸谱完整" xpos 20 ypos 20 size 20 color "#FFFFFF" at ooc_fadein
