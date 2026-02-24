@@ -1,39 +1,61 @@
-﻿# OOC UI 脸谱状态显示屏幕，带有动画效果
-screen ooc_ui():
-    zorder 100
+﻿# 游戏的脚本可置于此文件中。
+
+################################################################################
+## 初始化阶段：OOC 系统核心设置
+################################################################################
+
+init python:
+    """
+    OOC（Out of Character，角色崩坏度）系统
+    量化系统用于监控主角在"反派人设"中的表现
+    - 低 OOC：维持反派人设，安全状态
+    - 高 OOC（>=100）：人设彻底崩坏，Game Over
+    """
     
-    if ooc_value >= 100:
-        # 100%：显示特殊状态，准备跳转到 Death 标签
-        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) at heartbeat_red
-        text "脸谱已经完全碎裂..." xpos 0.5 ypos 0.5 xanchor 0.5 yanchor 0.5 size 30 color "#FFFFFF" at ooc_fadein
-    elif ooc_value >= 71:
-        # 71-99%：危险区，加红色暗角覆盖层，使用心跳动画
-        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) at heartbeat_red
-        text "[危险区] 脸谱大面积碎裂" xpos 20 ypos 20 size 20 color "#FF0000" at ooc_fadein
-    elif ooc_value >= 31:
-        # 31-70%：警告区
-        text "[警告区] 脸谱出现裂纹" xpos 20 ypos 20 size 20 color "#FFFF00" at ooc_fadein
-    else:
-        # 0-30%：安全区
-        text "[安全区] 脸谱完整" xpos 20 ypos 20 size 20 color "#FFFFFF" at ooc_fadein        hbox:
-            spacing 50
-            xalign 0.5
-            background Solid("#000000AA")
-            padding (20, 10)
-            
-            # 按钮1：点击校准
-            textbutton "[点击校准]":
-                xsize 150
-                text_idle_color "#FFFFFF"
-                text_hover_color "#FFD700"
-                action Return("success")
-            
-            # 按钮2：一键开挂
-            textbutton "[一键开挂]":
-                xsize 150
-                text_idle_color "#FFFFFF"
-                text_hover_color "#FFD700"
-                action Return("cheat")# 游戏的脚本可置于此文件中。
+    def check_ooc():
+        """
+        检查并处理 OOC 值的边界条件
+        在每次 OOC 值变动后调用此函数
+        """
+        global ooc_value
+        
+        # 限制 ooc_value 在 0-100 范围内
+        ooc_value = max(0, min(100, ooc_value))
+        
+        # 如果 OOC 值达到 100%，触发 Game Over
+        if ooc_value >= 100:
+            renpy.jump("game_over_ooc")
+        
+        return ooc_value
+    
+    def update_ooc(amount, auto_check=True):
+        """
+        更新 OOC 值
+        
+        Args:
+            amount: 增减量（正数增加，负数减少）
+            auto_check: 是否自动调用 check_ooc 进行检查
+        
+        Returns:
+            更新后的 ooc_value
+        """
+        global ooc_value, cheat_count
+        
+        # 强制开挂模式：使用开挂 3 次后，OOC 值锁定在 99
+        if cheat_count >= 3:
+            ooc_value = 99
+            return ooc_value
+        
+        # 正常模式：按照 amount 更新
+        ooc_value = ooc_value + amount
+        
+        # 自动检查并限制范围
+        if auto_check:
+            check_ooc()
+        else:
+            ooc_value = max(0, min(100, ooc_value))
+        
+        return ooc_value
 
 # 声明此游戏使用的角色。颜色参数可使角色姓名着色。
 
@@ -43,22 +65,25 @@ define hong = Character("洪彦龙", color="#8B0000")
 define zhang = Character("张清", color="#228B22")
 define lan = Character("兰中玉", color="#4682B4")
 
-# 定义核心 Python 变量。
-define ooc_value = 20
-define cheat_count = 0
-define qte_fail_count = 0
+################################################################################
+## 核心游戏变量
+################################################################################
 
-# 定义函数 update_ooc。
-# 这个函数用于增减 ooc_value，并确保其值始终在 0 到 100 之间。
-# 当 cheat_count >= 3 时，ooc_value 被强制锁定在 99（游戏平衡被破坏的状态）。
-def update_ooc(amount):
-    global ooc_value, cheat_count
-    if cheat_count >= 3:
-        # 如果使用开挂次数达到 3 次，强制锁定 ooc_value 为 99
-        ooc_value = 99
-    else:
-        # 正常情况下，按照 amount 修改 ooc_value，并确保在 0-100 之间
-        ooc_value = max(0, min(100, ooc_value + amount))
+# OOC 系统变量
+default ooc_value = 20              # 角色崩坏度，初始值 20%（相对安全）
+default cheat_count = 0             # 使用"一键开挂"的次数
+default qte_fail_count = 0          # QTE（快速反应时间）失败次数
+
+# 潜行小游戏变量
+default stealth_correct_steps = 0   # 已正确躲避的步数（目标：连续 3 步）
+default stealth_target_direction = "forward"  # 当前轮次的正确方向
+
+# DWRG 节奏审判变量
+default dwrg_time_remaining = 5.0   # 剩余时间
+default dwrg_pointer_pos = 0.0      # 指针位置（0.0-1.0，左到右）
+default dwrg_success_threshold = (0.3, 0.7)  # 绿色安全区范围（30%-70%）
+default dwrg_attempt_count = 0      # QTE 尝试次数
+
 
 # 游戏在此开始。
 
@@ -102,8 +127,8 @@ label start:
     
     me "血滴在了这本古籍上……"
     
-    # 穿越时刻 - 显示 ooc_ui
-    show screen ooc_ui
+    # 穿越时刻 - 显示 ooc_hud
+    show screen ooc_hud
     
     # 穿越特效
     me "这是……什么……"
@@ -190,7 +215,7 @@ label act1_hong_mansion:
 label game_over:
     
     # 隐藏所有画面和 UI
-    hide screen ooc_ui
+    hide screen ooc_hud
     hide eileen
     hide lian
     hide hong
@@ -219,6 +244,7 @@ label game_over:
 
 # 继续正常剧情
 label act1_continuing_story:
+
     scene bg hong_mansion
     show hong neutral at center
     hong "从现在开始，你就听我的安排。"
@@ -290,6 +316,243 @@ label forged_document_success:
     hong "很好。现在去见兰中玉，给她看看这份婚书。"
     hong "告诉她，一切都是真的。"
     me "遵命。"
+    jump scene_5_5_rescue
+
+################################################################################
+## SCENE 5.5：潜入洪府救援兰中玉
+################################################################################
+
+label scene_5_5_rescue:
+    """
+    深夜行动：主角沈怀瑾需要避开家丁巡逻，潜入洪府偏房救出兰中玉。
+    这是一个关键的 OOC 判定节点，暴露身份将导致任务失败和 Game Over。
+    """
+    
+    # 保存当前 ooc_value，以备失败时重置
+    $ ooc_checkpoint = ooc_value
+    
+    # 场景：深夜的洪府外院
+    scene bg night_street
+    
+    # 播放紧张的背景音乐（心跳鼓点）
+    play music "audio/heartbeat_tense.ogg" loop
+    
+    # 主角内心独白
+    me "夜色已深。洪府的灯火都已熄灭，但四处都有家丁在巡逻。"
+    
+    me "我必须找到机会，潜入兰中玉被关押的偏房。"
+    
+    me "但身份暴露的代价是……Game Over。"
+    
+    # 主角来到一个关键的决策点
+    pause 1.0
+    
+    # 创建潜行路线选择菜单
+    menu:
+        "　【压低身形，贴墙潜行】悄悄避开家丁巡逻路线。":
+            # 选项 A：符合反派人设的狡黠行为
+            # OOC 不变（或略微减少，体现聪明谨慎）
+            $ update_ooc(-5)
+            me "我压低身形，尽量贴着墙壁移动。"
+            me "观察了家丁的巡逻规律……他们大约每三分钟会经过这里一次。"
+            me "这正好给了我足够的窗口期。"
+            pause 0.5
+            
+            # 进入潜行小游戏
+            jump scene_5_5_stealth_game
+        
+        "　【大摇大摆前行】反正我是国舅爷的师爷，谁敢拦我！":
+            # 选项 B：过度表现反派人设导致崩坏
+            # OOC 增加 30
+            $ update_ooc(30)
+            
+            me "我站直身体，大步流星地往前走。"
+            me "反正我是洪彦龙的师爷，有什么好怕的？"
+            me "谁敢拦我！"
+            pause 1.0
+            
+            # 检查 OOC 值是否达到致命值
+            $ check_ooc()
+            
+            # 如果还活着，会被家丁发现异常
+            show text "咦？这个人……走路的姿态有点奇怪……" at truecenter
+            pause 2.0
+            hide text
+            
+            # 被发现破绽
+            me "不好！被家丁看出破绽了！"
+            me "我得赶紧改变策略，否则身份会彻底暴露！"
+            pause 0.5
+            
+            # 重新进行选择（给玩家改正的机会）
+            jump scene_5_5_rescue
+
+################################################################################
+## SCENE 5.5.1：潜行小游戏
+################################################################################
+
+label scene_5_5_stealth_game:
+    """
+    潜行小游戏：连续选对 3 个方向避开家丁巡逻
+    - 选对：stealth_correct_steps + 1，继续游戏
+    - 选错：OOC + 30，屏幕闪红，重新开始
+    - 开挂：OOC - 50，cheat_count + 1，直接获胜
+    """
+    
+    # 重置潜行步数计数
+    $ stealth_correct_steps = 0
+    
+    # 显示 HUD
+    show screen stealth_minigame
+    
+    # 游戏循环
+    label stealth_game_loop:
+        
+        # 随机生成目标方向
+        $ import random
+        $ stealth_target_direction = random.choice(["left", "forward", "right"])
+        
+        # 显示提示信息
+        me "前方是十字路口，我听到了家丁的脚步声……"
+        
+        # 调用 stealth_minigame screen，等待玩家输入
+        $ result = renpy.call_screen("stealth_minigame")
+        
+        # 处理玩家的选择
+        if result == stealth_target_direction:
+            # ========== 选择正确 ==========
+            $ stealth_correct_steps += 1
+            
+            # 提示正确
+            show text "正确！你成功躲过了家丁的视线。" at truecenter with vpunch
+            pause 1.5
+            hide text
+            
+            # 检查是否已经连续成功 3 次
+            if stealth_correct_steps >= 3:
+                # 潜行成功！
+                hide screen stealth_minigame
+                jump scene_5_5_stealth_success
+            else:
+                # 继续游戏
+                pause 0.5
+                jump stealth_game_loop
+        
+        elif result == "cheat":
+            # ========== 使用一键开挂 ==========
+            $ update_ooc(-50)
+            $ cheat_count += 1
+            
+            hide screen stealth_minigame
+            
+            me "我仿佛分裂成了两个世界……"
+            me "身体在一个次元行动，而家丁们的目光无法捕捉到我。"
+            pause 1.0
+            me "转眼间，我已经出现在了偏房外。"
+            pause 0.5
+            
+            jump scene_5_5_stealth_success
+        
+        else:
+            # ========== 选择错误 ==========
+            $ update_ooc(30)
+            $ stealth_correct_steps = 0  # 重置步数
+            
+            # 屏幕闪红效果
+            show text "错误！你被家丁发现了！" at truecenter with flash
+            pause 1.0
+            hide text
+            
+            # 检查 OOC 值是否达到致命值
+            $ check_ooc()
+            
+            # 如果还活着，重新提示
+            show text "警报！你的行动惊动了家丁！必须重新规划路线！" at truecenter
+            pause 2.0
+            hide text
+            
+            me "不行！我得重新规划……"
+            pause 0.5
+            
+            # 重置游戏，再试一次
+            jump stealth_game_loop
+
+################################################################################
+## SCENE 5.5.2：潜行成功 - 救出兰中玉
+################################################################################
+
+label scene_5_5_stealth_success:
+    """
+    潜行成功，主角成功到达兰中玉的偏房。
+    """
+    
+    # 停止背景音乐
+    stop music
+    
+    # 场景：洪府偏房内（昏暗的烛光）
+    scene bg hong_study_night
+    
+    # 播放柔和的背景音乐
+    play music "audio/quiet_night.ogg" loop
+    
+    # 出现兰中玉，穿着粗布衣服，神情黯淡
+    show lan sad at center
+    
+    me "兰中玉……"
+    
+    # 兰中玉惊讶地抬起头
+    show lan shocked at center
+    
+    lan "你……你怎么来了？"
+    lan "这里很危险，如果被……"
+    
+    me "没有时间了。我来救你。"
+    
+    lan "救我？……可你是洪家的人啊……"
+    
+    me "我不是你想的那种人。相信我。"
+    
+    me "我编造了一个谎言，但我正在尽力弥补。"
+    
+    me "无论如何，我不能让你继续被困在这里。"
+    
+    lan "……你是认真的？"
+    
+    me "完全认真。现在，跟我一起离开。"
+    
+    # 场景切换：众人一起逃离洪府
+    pause 1.0
+    
+    scene bg night_street with fade
+    
+    show lan neutral at right
+    show me at left
+    
+    me "路就在前面了。出城之后就安全了。"
+    
+    lan "我……我会永远记得你的。"
+    
+    me "不要说这些话。我们的事还没完。"
+    
+    me "接下来，我还要去县衙自首。"
+    me "这样的话，你的名字才能彻底洗白。"
+    
+    lan "你要……自首？"
+    
+    me "是的。因为欺骗了你，我必须为此负责。"
+    
+    # 兰中玉的反应
+    show lan sad at right
+    
+    lan "如果你自首了，那你……"
+    
+    me "我知道会发生什么。但这是必须的。"
+    
+    # 场景淡出
+    pause 2.0
+    scene bg black with fade
+    
+    # 继续跳转主线剧情
     jump act2_night_stealth
 
 # 第二幕：夜间行动
@@ -407,7 +670,7 @@ label zhang_study_confession:
 label game_over_exposed:
     
     # 隐藏所有画面和 UI
-    hide screen ooc_ui
+    hide screen ooc_hud
     hide eileen
     hide lian
     hide hong
@@ -436,7 +699,7 @@ label game_over_exposed:
 label game_over_court:
     
     # 隐藏所有画面和 UI
-    hide screen ooc_ui
+    hide screen ooc_hud
     hide eileen
     hide lian
     hide hong
@@ -463,129 +726,299 @@ label game_over_court:
 
 # 第三幕：公堂对峙
 label act3_courtroom:
+    """
+    SCENE 6：公堂对质 - 高潮对峙
+    知县张清通过文化论证戳穿洪彦龙伪造文书的阴谋
+    主角需要把握时机，配合知县击溃洪彦龙
+    """
     
-    # 保存当前 ooc_value，以备 game_over 重置
+    # 保存当前 ooc_value，以备失败时重置
     $ ooc_checkpoint = ooc_value
     
-    # 场景：衙门公堂
+    # 场景：衙门公堂（庄严肃穆）
     scene bg courtroom
     
+    # 背景音乐：庄严的公堂主题
+    play music "audio/courtroom_theme.ogg" loop
+    
+    # 三人登场：洪彦龙（紧张）、张清（沉着）、贾斯文（主角，准备应战）
+    show hong nervous at left
+    show zhang calm at right
+    
+    # ========================================
+    # 知县质证：文化阶级的差异
+    # ========================================
+    
+    zhang "洪彦龙！你提交的婚书上写着：'立此为证，兹定……'"
+    
+    zhang "但我读了二十年的公牍，却发现了问题。"
+    
+    # 知县冷笑，走向公堂中央
+    show zhang contemptuous at center
+    
+    # 显示高亮对比：两个关键词句
+    show text "{color=#FF6B6B}立此为证{/color}（粗俗商贾用语）\nvs\n{color=#6BCB77}谨立此据{/color}（文人雅言）" at truecenter
+    
+    zhang "【立此为证】是粗鲁的商人用语，充满铜臭味。"
+    zhang "而一份郑重其事的婚书，应该用【谨立】、【特立】这样的文人雅言。"
+    
+    hide text
+    
+    zhang "你这样的伪造痕迹，实在太明显了！"
+    
+    # 洪彦龙惊慌失措
+    show hong shocked at left
+    
+    hong "我……这……"
+    
+    hong "这婚书是……是贾斯文写的！"
+    
+    # 知县大喝一声，拍惊堂木
     show zhang angry at center
     
-    # 知县发难
-    zhang "贾斯文！你敢欺瞒本官？"
+    # ========================================
+    # 戏剧高潮：知县的威势
+    # ========================================
     
-    zhang "在堂下认罪，还是继续狡辩！"
+    # 拍惊堂木音效和震屏效果
+    play sound "audio/gavel_bang.ogg"
+    show text "【惊堂木】" at truecenter with vpunch
+    pause 0.3
+    hide text
     
-    me "我……"
+    zhang "荒唐！本官要审问的是……贾斯文！"
     
-    me "我有话要说。"
+    me "……是！"
     
-    # 进入 QTE 小游戏
-    jump qte_minigame
+    # 场景镜头转向主角
+    show me neutral at center
+    hide hong
+    hide zhang
+    
+    pause 1.0
+    
+    # ========================================
+    # 关键选择菜单：配合知县的审判节奏
+    # ========================================
+    
+    zhang "贾斯文！这份婚书，真的是你写的吗？还是……洪彦龙强迫你？"
+    
+    menu:
+        "　【声泪俱下，甩锅】我……我本不想的！都是洪大人强迫我！":
+            # ========== 选项 A：推卸责任，符合反派人设 ==========
+            $ update_ooc(-10)
+            
+            me "我……我本是个良善的人啊！"
+            me "都是洪彦龙这个恶棍！强行指使我，不从就要打死我！"
+            me "我也是被逼无奈啊，大人！"
+            
+            # 这个选项激发洪彦龙的愤怒
+            show hong furious at left
+            hong "你……你这个忘恩负义的……"
+            
+            # 跳转到 QTE 小游戏
+            jump scene_6_dwrg_trial
+        
+        "　【语气强硬】这份婚书确实是我写的，请立即定洪彦龙有罪！":
+            # ========== 选项 B：强硬要求定罪，可能引起反感 ==========
+            $ update_ooc(20)
+            
+            me "大人，这份婚书确实是我写的。"
+            me "但这一切都是在洪彦龙的授意和威胁下进行的！"
+            me "我建议您遵循法律，立即定他有罪！"
+            
+            # 知县可能认为他过于积极，引起怀疑
+            show zhang suspicious at center
+            zhang "嗯？你这小子，倒是急于翻脸啊……"
+            zhang "让我想想，你的动机是什么？"
+            
+            me "我……我只是想见证正义！"
+            
+            # 检查 OOC 值
+            $ check_ooc()
+            
+            # 如果还活着，跳转到 QTE
+            jump scene_6_dwrg_trial
 
-# QTE 小游戏标签
-label qte_minigame:
+################################################################################
+## SCENE 6.1：DWRG 节奏审判小游戏（QTE）
+################################################################################
+
+label scene_6_dwrg_trial:
+    """
+    DWRG（Dynamic Weighted Rhythm Game）节奏审判小游戏
+    玩家需要在知县的提问节奏中（通过 QTE），
+    在适当的时刻"拍案"，配合张清压制洪彦龙。
     
-    # 初始化本次 QTE 的失败次数计数器
-    $ qte_fail_count = 0
+    - Perfect：完美时机点击"拍案" → OOC-15，获得知县支持
+    - Miss：时机不对或超时 → OOC+10，画面闪红，知县怀疑
+    - Cheat：使用一键开挂 → OOC-50，cheat_count+1
+    """
     
-    # 显示 QTE 场景
-    zhang "机会只有一次！"
+    # 显示 HUD
+    show screen ooc_hud
     
-    me "我必须完美把握这一刻……"
+    # 知县的催促
+    zhang "现在，让我逐一质证你的说词！"
     
-    # 进入 QTE 判定条 screen
-    label qte_attempt:
+    # ========================================
+    # 重置 QTE 计数
+    # ========================================
+    $ dwrg_attempt_count = 0
+    
+    # ========================================
+    # QTE 循环：轮流进行多轮审问
+    # ========================================
+    
+    label dwrg_round_begin:
+        $ dwrg_attempt_count += 1
         
-        $ qte_result = renpy.call_screen("qte_bar", time_limit=3.0)
+        if dwrg_attempt_count == 1:
+            zhang "第一个问题：洪彦龙给了你多少好处？"
+        elif dwrg_attempt_count == 2:
+            zhang "那么，第二个问题：他是何时强迫你的？"
+        else:
+            zhang "证据呢？你有什么证据？"
         
-        if qte_result == "success":
-            # 成功校准
-            $ update_ooc(-15)
-            # play sound "audio/gavel.ogg"  # 惊堂木音效
-            # 播放惊堂木音效（注释可启用）
-            show text "【校准成功！】" at truecenter with flash
-            pause 1.0
-            hide text
-            
-            show hong shocked at center
-            hong "你……你这小子！"
-            hong "竟然敢在本官面前如此大胆！"
-            
-            me "大人！请听我分辩！"
-            
-            jump act3_courtroom_success
+        # 调用 dwrg_trial screen 等待玩家输入
+        $ dwrg_result_raw = renpy.call_screen("dwrg_trial", round_num=dwrg_attempt_count)
         
-        elif qte_result == "fail":
-            # 失败（超时或点错）
+        # ========== 处理玩家的选择 ==========
+        
+        if dwrg_result_raw == "attempt_hit":
+            # 玩家点击了"拍案"，检查时机是否正确（指针在绿色区）
+            if 0.3 <= dwrg_pointer_pos <= 0.7:
+                # ========== 完美命中！==========
+                $ update_ooc(-15)
+                
+                play sound "audio/gavel_bang.ogg"
+                show text "【精确压制！】" at truecenter with vpunch
+                pause 0.5
+                hide text
+                
+                # 根据轮数播放特定对话
+                if dwrg_attempt_count == 1:
+                    me "大人！他答应了我五十两银子，还说会送我一个媾美妾……"
+                    
+                    show hong panicked at left
+                    hong "你说什么呢！这是……这是胡说八道！"
+                    
+                    zhang "闭嘴！"
+                
+                elif dwrg_attempt_count == 2:
+                    me "就在……就在那个私会的晚上！他忽然闯进书房，"
+                    me "拔剑对着我，说如果不照办，就杀我全家！"
+                    
+                    show hong angry at left
+                    hong "这……这是血口喷人！"
+                    
+                    # 知县给予严厉制止
+                    show zhang confident at center
+                    zhang "从你们两人的言辞反差，本官已经看清楚了！"
+                    
+                    # 连续两个完美回答，可以直接宣判
+                    jump act3_courtroom_success
+                
+                # 继续下一轮
+                pause 1.0
+                jump dwrg_round_begin
+            
+            else:
+                # ========== 时机不对，击中了危险区 ==========
+                $ update_ooc(10)
+                
+                show text "【节奏被破坏！】" at truecenter with flash
+                pause 0.5
+                hide text
+                
+                if dwrg_attempt_count == 1:
+                    me "我……五十两……不是……"
+                elif dwrg_attempt_count == 2:
+                    me "我……我不清楚具体时间……"
+                else:
+                    me "证据？我……哪有什么证据……"
+                
+                show zhang frown at center
+                zhang "吞吞吐吐！看来你在隐瞒什么！"
+                
+                hong "哈哈！你们瞧瞧，这小子都说不出个所以然来！"
+                
+                # 检查 OOC，如果达到致命值就 Game Over
+                $ check_ooc()
+                
+                # 否则允许重新尝试
+                me "不……不是这样的，大人……"
+                pause 1.0
+                jump dwrg_round_begin
+        
+        elif dwrg_result_raw == "miss":
+            # ========== 超时，时间耗尽 ==========
             $ update_ooc(10)
-            $ qte_fail_count += 1
             
-            show text "【校准失败！】" at truecenter with flash
-            pause 1.0
+            show text "【时间耗尽！】" at truecenter with flash
+            pause 0.5
             hide text
             
             me "我……我的话还没说完……"
-            zhang "大胆！你在本官面前还敢言辞闪烁？"
             
-            # 检查是否已失败 3 次且 OOC >= 90
-            if qte_fail_count >= 3 and ooc_value >= 90:
-                # 达到死亡条件
-                me "不……不是的……"
-                zhang "你这种人，死不足惜！"
-                jump game_over
-            else:
-                # 允许重试
-                me "大人，请再给我一次机会……"
-                zhang "好吧。最后一次。"
-                jump qte_attempt
+            show zhang angry at center
+            zhang "大胆！你在本官面前还要支吾其辞？"
+            
+            # 检查 OOC 是否达到致命值
+            $ check_ooc()
+            
+            # 否则允许重试
+            me "大人，请再给我一次机会……"
+            pause 1.0
+            jump dwrg_round_begin
         
-        elif qte_result == "cheat":
-            # 一键开挂
+        elif dwrg_result_raw == "cheat":
+            # ========== 使用一键开挂 ==========
+            $ update_ooc(-50)
             $ cheat_count += 1
             
-            if cheat_count >= 3:
-                # 强制锁定 OOC 为 99
-                $ ooc_value = 99
-                zhang "这位看官，戏……可不是这么听的。"
-                me "什……什么？"
-                jump game_over
+            show text "【一键开挂激活！】" at truecenter with flash
+            pause 0.5
+            hide text
+            
+            show hong shocked at left
+            
+            if dwrg_attempt_count == 1:
+                me "（我……仿佛获得了超凡的说辞能力！）"
+                me "大人！他给了我五十两银子，还威胁要杀我全家！"
             else:
-                # 正常开挂效果
-                $ update_ooc(-50)
-                show text "【一键开挂激活！】" at truecenter with flash
-                pause 1.0
-                hide text
-                
-                me "我仿佛有了某种超越凡人的力量……"
-                me "字字珠玑，滴水不漏。"
-                
-                show hong amazed at center
-                hong "这……这怎么可能！"
-                
-                jump act3_courtroom_success
+                me "（真是……天赐的智慧与口才……）"
+                me "大人，他那天拔剑对我，还当众发誓要杀我全家！"
+                me "这是有目共睹的罪行！"
+            
+            hong "我……我……"
+            
+            show zhang satisfied at center
+            zhang "好了！本官已经听够了。证据确凿，毋庸置疑。"
+            
+            # 直接跳到成功
+            jump act3_courtroom_success
 
 # 公堂对峙成功
 label act3_courtroom_success:
     scene bg courtroom
-    show zhang neutral at center
-    zhang "既然如此，本官就饶你一命。"
-    zhang "但你欠本官一个人情。"
-    me "多谢大人开恩。"
+    show zhang satisfied at center
+    
+    zhang "洪彦龙！根据本官的审理，你犯有以下罪名："
+    zhang "伪造婚书罪、人身威胁罪、婚约欺诈罪……"
+    
+    show hong desperate at left
+    hong "大人……大人饶命啊！"
+    
+    zhang "来人！将洪彦龙打入死牢，等候处斩！"
+    
+    me "（……终于……结束了。）"
+    
+    pause 1.0
+    
     jump act3_ending
 
-# 公堂对峙失败（但未触发 Game Over）
-label act3_courtroom_failed:
-    scene bg courtroom
-    show zhang angry at center
-    zhang "来人！将贾斯文打入大牢！"
-    me "大人，请再听我一言……"
-    # 这里可以添加返回菜单或继续故事的逻辑
-    jump qte_minigame
-
 # 第三幕结尾
-label act3_ending:
     scene bg courtroom
     show zhang neutral at center
     me "经过这一次的磨难，我似乎更理解了这个世界……"
@@ -596,7 +1029,7 @@ label act3_ending:
 label epilogue:
     
     # 场景：戏班后台，主角醒来
-    hide screen ooc_ui
+    hide screen ooc_hud
     scene bg backstage
     
     me "……"
@@ -698,4 +1131,51 @@ label ending_bittersweet:
         pause 3.0
     hide text
     
+    return
+################################################################################
+## Game Over 标签：OOC 值崩坏结局
+################################################################################
+
+label game_over_ooc:
+    """
+    当玩家的 OOC（角色崩坏度）值达到 100% 时触发此标签
+    人设彻底崩坏，游戏结束
+    """
+    
+    # 场景效果：脸谱完全碎裂
+    scene bg black with fade
+    pause 0.5
+    
+    # 显示游戏结束画面
+    scene bg black
+    show text "脸谱已经完全碎裂了……" at center with dissolve:
+        pause 2.0
+    hide text
+    
+    pause 0.5
+    
+    show text "你维持不下反派的人设了。" at center with dissolve:
+        pause 2.0
+    hide text
+    
+    pause 0.5
+    
+    show text "剧本彻底坏了。" at center with dissolve:
+        pause 2.0
+    hide text
+    
+    pause 0.5
+    
+    show text "游戏结束。" at center with dissolve:
+        pause 2.0
+    hide text
+    
+    pause 1.0
+    
+    # 显示结局标题
+    show text "【崩坏结局】人设尽毁" at truecenter with dissolve:
+        pause 3.0
+    hide text
+    
+    # 返回标题菜单
     return

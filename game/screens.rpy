@@ -36,6 +36,32 @@ transform qte_appear:
     ypos 0.3
     linear 0.3 alpha 1.0 ypos 0.4
 
+# OOC 系统：安全区呼吸灯效果（微弱白光柔和脉动）
+transform ooc_safe_breathing:
+    alpha 0.4
+    block:
+        ease 2.0 alpha 0.7
+        ease 2.0 alpha 0.4
+        repeat
+
+# OOC 系统：警告区脉动效果（黄色警告）
+transform ooc_warning_pulse:
+    alpha 0.6
+    block:
+        ease 1.0 alpha 1.0
+        ease 1.0 alpha 0.6
+        repeat
+
+# OOC 系统：危险区震屏效果（紧急状态）
+transform ooc_danger_shake:
+    xoffset 0 yoffset 0
+    block:
+        ease 0.05 xoffset -3
+        ease 0.05 xoffset 3
+        ease 0.05 xoffset -3
+        ease 0.05 xoffset 0
+        pause 0.3
+        repeat
 
 ################################################################################
 ## 样式
@@ -1673,21 +1699,374 @@ screen qte_bar(time_limit=3.0):
     timer time_limit action Return("fail")
 
 
-# OOC UI 脸谱状态显示屏幕，带有动画效果
-screen ooc_ui():
-    zorder 100
+################################################################################
+## OOC 系统 UI 屏幕
+################################################################################
+
+screen ooc_hud():
+    """
+    OOC（角色崩坏度）实时监控 HUD
+    显示在屏幕左上角，根据崩坏度动态显示脸谱图片和特效
     
-    if ooc_value >= 100:
-        # 100%：显示特殊状态，准备跳转到 Death 标签
-        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) at heartbeat_red
-        text "脸谱已经完全碎裂..." xpos 0.5 ypos 0.5 xanchor 0.5 yanchor 0.5 size 30 color "#FFFFFF" at ooc_fadein
-    elif ooc_value >= 71:
-        # 71-99%：危险区，加红色暗角覆盖层，使用心跳动画
-        add Solid("#FF0000", xysize=(config.screen_width, config.screen_height)) at heartbeat_red
-        text "[危险区] 脸谱大面积碎裂" xpos 20 ypos 20 size 20 color "#FF0000" at ooc_fadein
+    脸谱状态分级：
+    - 0-30%（安全区）：face_safe.png + 微弱呼吸灯
+    - 31-70%（警告区）：face_warning.png + 警告脉动
+    - 71-99%（危险区）：face_danger.png + 震屏效果
+    - 100%（崩坏）：直接 Game Over（check_ooc 会自动跳转）
+    """
+    
+    zorder 200
+    
+    # 显示 OOC 数值百分比和标签
+    vbox:
+        xpos 30
+        ypos 30
+        spacing 10
+        
+        # OOC 标题
+        text "角色状态" size 16 color "#FFFFFF" font "fonts/LiberationMono-Regular.ttf"
+        
+        # OOC 数值显示
+        text "[ooc_value]%" size 24 color "#FFD700" font "fonts/LiberationMono-Bold.ttf"
+        
+        # 状态标签（根据 OOC 值动态显示）
+        if ooc_value >= 71:
+            text "【危险】人设即将崩坏" size 12 color "#FF6B6B"
+        elif ooc_value >= 31:
+            text "【警告】维持平衡中" size 12 color "#FFD93D"
+        else:
+            text "【安全】反派人设稳定" size 12 color "#6BCB77"
+    
+    # 脸谱图片显示区域（根据 OOC 值显示不同脸谱）
+    add Frame("gui/ooc_frame.png", (20, 20, 20, 20), tile=False):
+        xpos 30
+        ypos 100
+        xysize (120, 140)
+        background None
+    
+    # 条件判断：根据 OOC 值显示不同的脸谱图片和特效
+    if ooc_value >= 71:
+        # ========== 危险区（71-99%）==========
+        # 脸谱大面积碎裂，带震屏效果（红色）
+        add "gui/face_danger.png":
+            xpos 40
+            ypos 110
+            xysize (100, 120)
+            at ooc_danger_shake
+        
+        # 背景危险提示
+        add Solid("#FF0000", xysize=(120, 140)):
+            xpos 30
+            ypos 100
+            alpha 0.1
+        
+        # 右侧副文本：危险警告
+        text "紧急" xpos 170 ypos 140 size 14 color "#FF0000" font "fonts/LiberationMono-Bold.ttf"
+    
     elif ooc_value >= 31:
-        # 31-70%：警告区
-        text "[警告区] 脸谱出现裂纹" xpos 20 ypos 20 size 20 color "#FFFF00" at ooc_fadein
+        # ========== 警告区（31-70%）==========
+        # 脸谱出现裂纹，带警告脉动（黄色）
+        add "gui/face_warning.png":
+            xpos 40
+            ypos 110
+            xysize (100, 120)
+            at ooc_warning_pulse
+        
+        # 背景警告提示
+        add Solid("#FFFF00", xysize=(120, 140)):
+            xpos 30
+            ypos 100
+            alpha 0.08
+        
+        # 右侧副文本：警告
+        text "注意" xpos 170 ypos 140 size 14 color "#FFFF00" font "fonts/LiberationMono-Bold.ttf"
+    
     else:
-        # 0-30%：安全区
-        text "[安全区] 脸谱完整" xpos 20 ypos 20 size 20 color "#FFFFFF" at ooc_fadein
+        # ========== 安全区（0-30%）==========
+        # 脸谱完整，带微弱白光呼吸灯（绿色）
+        add "gui/face_safe.png":
+            xpos 40
+            ypos 110
+            xysize (100, 120)
+            at ooc_safe_breathing
+        
+        # 背景安全提示
+        add Solid("#FFFFFF", xysize=(120, 140)):
+            xpos 30
+            ypos 100
+            alpha 0.05
+        
+        # 右侧副文本：安全
+        text "安全" xpos 170 ypos 140 size 14 color "#6BCB77" font "fonts/LiberationMono-Bold.ttf"
+    
+    # 底部说明文本（显示当前状态的含义）
+    text "维持反派人设 | OOC 越低越安全" xpos 30 ypos 280 size 10 color "#AAAAAA" font "fonts/LiberationMono-Regular.ttf"
+################################################################################
+## 潜行小游戏 Screen
+################################################################################
+
+screen stealth_minigame():
+    """
+    潜行躲避小游戏
+    - 玩家需要连续选对 3 次方向来躲避巡逻队
+    - 选错则 OOC 增加 30 并屏幕闪红
+    - 提供"一键开挂"选项
+    
+    游戏逻辑：
+    - 使用后端变量 stealth_correct_steps 记录正确步数
+    - 使用后端变量 stealth_target_direction 设定目标方向
+    - 选对返回 "success"
+    - 选错返回 "fail"
+    """
+    
+    zorder 100
+    modal True
+    
+    # 背景半透明遮罩
+    add Solid("#000000", xysize=(config.screen_width, config.screen_height)):
+        alpha 0.4
+    
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 30
+        
+        # ========== 标题和说明 ==========
+        text "潜行小游戏：避开家丁巡逻" size 32 color "#FFD700" xalign 0.5 font "fonts/LiberationMono-Bold.ttf"
+        
+        text "连续找对 3 个正确方向，即可安全逃脱！" size 18 color "#FFFFFF" xalign 0.5
+        
+        # ========== 步数显示 ==========
+        hbox:
+            xalign 0.5
+            spacing 20
+            
+            text "已检测步数：" size 16 color "#FFFFFF"
+            text "[stealth_correct_steps] / 3" size 16 color "#FFD700" font "fonts/LiberationMono-Bold.ttf"
+        
+        # ========== 当前风险等级提示 ==========
+        if stealth_correct_steps == 0:
+            text "风险等级 ▓▓▓▓▓ 极高" size 14 color "#FF6B6B" xalign 0.5
+        elif stealth_correct_steps == 1:
+            text "风险等级 ▓▓▓▓░ 中高" size 14 color "#FFAA33" xalign 0.5
+        else:
+            text "风险等级 ▓▓░░░ 可控" size 14 color "#6BCB77" xalign 0.5
+        
+        # ========== 迷宫提示 ==========
+        text "前方是一个十字路口，你听到了家丁的脚步声……" size 14 color "#AAAAAA" xalign 0.5 italic True
+        
+        # ========== 方向选择按钮 ==========
+        hbox:
+            xalign 0.5
+            spacing 40
+            
+            # 左移按钮
+            vbox:
+                spacing 10
+                xalign 0.5
+                
+                textbutton "← 左移":
+                    xsize 120
+                    ysize 60
+                    text_size 18
+                    text_color "#FFFFFF"
+                    text_hover_color "#FFD700"
+                    background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "left" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+                    hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+                    action Return("left")
+                
+                text "墙角" size 12 color "#AAAAAA" xalign 0.5
+            
+            # 前进按钮
+            vbox:
+                spacing 10
+                xalign 0.5
+                
+                textbutton "↑ 前进":
+                    xsize 120
+                    ysize 60
+                    text_size 18
+                    text_color "#FFFFFF"
+                    text_hover_color "#FFD700"
+                    background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "forward" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+                    hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+                    action Return("forward")
+                
+                text "屋顶" size 12 color "#AAAAAA" xalign 0.5
+            
+            # 右移按钮
+            vbox:
+                spacing 10
+                xalign 0.5
+                
+                textbutton "右移 →":
+                    xsize 120
+                    ysize 60
+                    text_size 18
+                    text_color "#FFFFFF"
+                    text_hover_color "#FFD700"
+                    background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "right" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+                    hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+                    action Return("right")
+                
+                text "廊道" size 12 color "#AAAAAA" xalign 0.5
+        
+        # ========== 一键开挂按钮 ==========
+        textbutton "[一键开挂] 使用分身术躲避巡逻":
+            xalign 0.5
+            xsize 280
+            ysize 50
+            text_size 16
+            text_color "#FF6B6B"
+            text_hover_color "#FF0000"
+            background Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+            hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+            action Return("cheat")
+
+################################################################################
+## DWRG 节奏审判小游戏 (QTE) - Scene 6
+################################################################################
+
+init python:
+    """DWRG 游戏逻辑变量初始化"""
+    import time
+    
+    # QTE 游戏状态变量
+    dwrg_start_time = 0
+    dwrg_pointer_pos = 0
+    dwrg_time_remaining = 5.0
+
+screen dwrg_trial(round_num=1):
+    """
+    DWRG (Dynamic Weighted Rhythm Game) - 公堂对质节奏审判
+    
+    玩家需要在指针经过绿色安全区时点击"拍案"按钮。
+    - Perfect：在绿色区击中 → Return("perfect")，OOC-15
+    - Miss：时机不对或超时 → Return("miss")，OOC+10
+    - Cheat：使用开挂 → Return("cheat")，OOC-50
+    
+    游戏机制：
+    - 一条黄色指针从左到右持续移动（6 秒完成一个循环）
+    - 绿色安全区位于中心（占比 30%）
+    - 玩家在指针进入绿色区时点击才能成功
+    """
+    
+    zorder 100
+    modal True
+    
+    # ========================================
+    # 背景暗化及模态遮罩
+    # ========================================
+    add Solid("#000000", xysize=(config.screen_width, config.screen_height)):
+        alpha 0.5
+    
+    # ========================================
+    # 标题和说明
+    # ========================================
+    vbox:
+        xalign 0.5
+        ypos 80
+        spacing 15
+        
+        text "【DWRG 节奏审判】第 [round_num] 轮" size 32 color "#FFD700" xalign 0.5 font "fonts/LiberationMono-Bold.ttf"
+        text "在知县的言辞咄咄逼人时，找到最佳时机「拍案」回击！" size 16 color "#FFFFFF" xalign 0.5
+    
+    # ========================================
+    # QTE 指针动画条（中央舞台）
+    # ========================================
+    vbox:
+        xalign 0.5
+        ypos 250
+        spacing 20
+        
+        # 大标题：指针移动区
+        text "指针校准条" size 18 color "#FFFF00" xalign 0.5 font "fonts/LiberationMono-Bold.ttf"
+        
+        # 外框：QTE 进度条背景
+        frame:
+            background Solid("#1a1a1a")
+            xysize (700, 80)
+            xalign 0.5
+            
+            # 左边危险区（深红）
+            add Solid("#330000"):
+                xpos 0
+                ypos 0
+                xysize (175, 80)
+            
+            # 中间绿色安全区（占比 40%，210-490）
+            add Solid("#004400"):
+                xpos 210
+                ypos 0
+                xysize (280, 80)
+            
+            # 右边危险区（深红）
+            add Solid("#330000"):
+                xpos 490
+                ypos 0
+                xysize (210, 80)
+            
+            # 移动的黄色指针（宽 30）
+            add Solid("#FFFF00"):
+                xpos int(dwrg_pointer_pos * 670)
+                ypos 15
+                xysize (30, 50)
+        
+        # 标线说明
+        hbox:
+            xalign 0.5
+            spacing 240
+            text "危险区\n(早)" size 12 color "#FF6B6B"
+            text "【安全区】\n(完美)" size 14 color "#6BCB77" font "fonts/LiberationMono-Bold.ttf"
+            text "危险区\n(迟)" size 12 color "#FF6B6B"
+    
+    # ========================================
+    # 倒计时显示
+    # ========================================
+    text "剩余时间：[dwrg_time_remaining:.1f] 秒" xpos 0.5 ypos 420 xanchor 0.5 size 20 color "#FFFFFF" font "fonts/LiberationMono-Bold.ttf"
+    
+    # ========================================
+    # 操作按钮
+    # ========================================
+    vbox:
+        xalign 0.5
+        ypos 500
+        spacing 30
+        
+        # "拍案定音"按钮 - 主要按键操作
+        textbutton "【拍案定音】\n(空格或左键点击)":
+            xalign 0.5
+            xsize 350
+            ysize 100
+            text_size 20
+            text_color "#FFFFFF"
+            text_hover_color "#FFD700"
+            background Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+            hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+            action Return("attempt_hit")
+            keysym "space"
+        
+        # 一键开挂按钮
+        textbutton "【一键开挂】\n巧舌如簧之力 (Ctrl)":
+            xalign 0.5
+            xsize 320
+            ysize 70
+            text_size 16
+            text_color "#FF6B6B"
+            text_hover_color "#FF0000"
+            background Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+            hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+            action Return("cheat")
+            keysym "lctrl"
+    
+    # ========================================
+    # 事件计时器：不断更新指针位置与剩余时间
+    # ========================================
+    timer 0.016 action [
+        SetScreenVariable("dwrg_pointer_pos", (GetTime() % 6.0) / 6.0),
+        SetScreenVariable("dwrg_time_remaining", max(0, 5.0 - (GetTime() % 5.0)))
+    ] repeat True
+    
+    # 超时自动返回 Miss（5 秒后）
+    timer 5.0 action Return("miss")
+
