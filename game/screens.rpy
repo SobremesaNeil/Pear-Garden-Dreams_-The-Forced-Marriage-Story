@@ -1954,6 +1954,9 @@ screen dwrg_trial(round_num=1):
     zorder 100
     modal True
     
+    # 状态锁：防止音效在 60FPS 刷新下被连续触发
+    default in_safe_zone = False
+    
     # ========================================
     # 背景暗化及模态遮罩
     # ========================================
@@ -2061,10 +2064,17 @@ screen dwrg_trial(round_num=1):
     
     # ========================================
     # 事件计时器：不断更新指针位置与剩余时间
+    # 并检测指针进入/离开安全区，播放音效提示
     # ========================================
     timer 0.016 action [
         SetScreenVariable("dwrg_pointer_pos", (GetTime() % 6.0) / 6.0),
-        SetScreenVariable("dwrg_time_remaining", max(0, 5.0 - (GetTime() % 5.0)))
+        SetScreenVariable("dwrg_time_remaining", max(0, 5.0 - (GetTime() % 5.0))),
+        # 当指针进入安全区 (0.3-0.7) 且状态锁为 False 时，播放提示音
+        If(And((GetTime() % 6.0) / 6.0 >= 0.3, (GetTime() % 6.0) / 6.0 <= 0.7, Not(in_safe_zone)),
+           [Play("sound", "audio/beep.ogg"), SetScreenVariable("in_safe_zone", True)]),
+        # 当指针离开安全区 且 状态锁为 True 时，重置状态锁
+        If(And(Or((GetTime() % 6.0) / 6.0 < 0.3, (GetTime() % 6.0) / 6.0 > 0.7), in_safe_zone),
+           SetScreenVariable("in_safe_zone", False))
     ] repeat True
     
     # 超时自动返回 Miss（5 秒后）

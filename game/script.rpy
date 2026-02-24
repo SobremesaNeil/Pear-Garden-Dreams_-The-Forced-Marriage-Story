@@ -84,6 +84,73 @@ default dwrg_pointer_pos = 0.0      # 指针位置（0.0-1.0，左到右）
 default dwrg_success_threshold = (0.3, 0.7)  # 绿色安全区范围（30%-70%）
 default dwrg_attempt_count = 0      # QTE 尝试次数
 
+################################################################################
+## 初始化三大小游戏系统
+################################################################################
+
+init python:
+    from minigames import (
+        PuzzleGame, PuzzleFragment,
+        StrokeTracker, StrokeCheckpoint,
+        NinePuzzleGame
+    )
+    
+    # 全局小游戏实例（根据需要创建）
+    puzzle_game = None
+    stroke_tracker = None
+    nine_puzzle_game = None
+    
+    def init_puzzle_game():
+        """初始化脸谱复原小游戏"""
+        global puzzle_game
+        puzzle_game = PuzzleGame(num_fragments=5)
+        
+        # 添加碎片
+        # 【需要替换为实际的图片路径】
+        fragment_configs = [
+            (0, "images/puzzle_fragment_1.png", 400, 250, 20),  # id, 路径, 目标X, 目标Y, 容差
+            (1, "images/puzzle_fragment_2.png", 420, 240, 20),
+            (2, "images/puzzle_fragment_3.png", 410, 270, 20),
+            (3, "images/puzzle_fragment_4.png", 390, 260, 20),
+            (4, "images/puzzle_fragment_5.png", 410, 250, 20),
+        ]
+        
+        for frag_id, path, target_x, target_y, tolerance in fragment_configs:
+            frag = PuzzleFragment(frag_id, path, target_x, target_y, tolerance)
+            puzzle_game.add_fragment(frag)
+        
+        return puzzle_game
+    
+    def init_stroke_tracker():
+        """初始化描红笔画追踪系统"""
+        global stroke_tracker
+        
+        # 定义"婚"字的笔画检查点（需要根据实际调整坐标）
+        # 格式：(检查点ID, X坐标, Y坐标, 触发半径)
+        checkpoints = [
+            (0, 300, 200, 15),  # 第一笔起点
+            (1, 300, 250, 15),  # 第二笔
+            (2, 350, 250, 15),  # 第三笔
+            (3, 350, 200, 15),  # 第四笔
+            (4, 400, 225, 15),  # 第五笔
+        ]
+        
+        stroke_tracker = StrokeTracker(
+            checkpoints_data=checkpoints,
+            time_limit=10.0,
+            bg_image="images/hui_character.png"  # 【需要替换为"婚"字背景图】
+        )
+        
+        return stroke_tracker
+    
+    def init_nine_puzzle():
+        """初始化九宫格一笔画小游戏"""
+        global nine_puzzle_game
+        nine_puzzle_game = NinePuzzleGame()
+        # 可选：自定义危险路线
+        # nine_puzzle_game.dangerous_edges = set([(0, 2), (6, 8)])
+        return nine_puzzle_game
+
 
 # 游戏在此开始。
 

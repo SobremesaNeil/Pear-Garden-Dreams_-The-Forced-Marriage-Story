@@ -1,0 +1,271 @@
+"""
+三大小游戏的调用示范代码
+将以下代码片段集成到你的 script.rpy 或其他合适的 label 中
+"""
+
+################################################################################
+## 示范 1：脸谱复原小游戏调用
+################################################################################
+
+label scene_prologue_puzzle():
+    """
+    序章：破败小屋中发现破碎的脸谱
+    需要拼凑完整才能继续剧情
+    """
+    scene bg broken_cottage_dusk
+    
+    me "这是什么？一个破碎的脸谱……"
+    me "如果我能把它拼凑完整，也许能了解更多关于这个地方的秘密。"
+    
+    # 初始化脸谱复原游戏
+    $ init_puzzle_game()
+    
+    # 调用拼图小游戏
+    $ puzzle_result = renpy.call_screen("puzzle_restoration")
+    
+    # 根据结果处理
+    if puzzle_result == "success":
+        # 成功完成
+        me "太好了！脸谱终于完整了……"
+        me "这张脸……好陌生，但又有些熟悉。"
+        $ update_ooc(-10)  # 减少 OOC：细心观察，符合人设
+        jump scene_prologue_continue_a
+    
+    elif puzzle_result == "cheat":
+        # 使用开挂
+        me "我的手仿佛自动完成了这一切……"
+        me "脸谱已经完美拼凑好了。"
+        $ update_ooc(-40)  # 减少 OOC：但使用了作弊
+        $ cheat_count += 1
+        jump scene_prologue_continue_a
+    
+    else:
+        # 重置或取消
+        me "看来短时间内我拼不完整这个脸谱。"
+        jump scene_prologue_continue_b
+
+
+################################################################################
+## 示范 2：伪造婚书（描红笔画）调用
+################################################################################
+
+label scene_act1_forged_document():
+    """
+    第一幕：帮助洪彦龙伪造婚书
+    需要在「婚」字上进行精准的笔画描红
+    """
+    scene bg hong_mansion_study
+    show hong neutral at center
+    
+    hong "我需要你伪造一份婚书。这个女人——兰中玉——必须被约束。"
+    hong "我需要你在这个字上描红。【婚】"
+    
+    me "我明白了。"
+    
+    # 初始化描红笔画追踪器
+    $ init_stroke_tracker()
+    
+    # 调用描红小游戏
+    $ stroke_result = renpy.call_screen("stroke_writing")
+    
+    # 根据结果处理
+    if stroke_result == "success":
+        # 完美描红
+        me "描红完成。笔画精准，足以骗过任何人。"
+        show hong happy at center
+        hong "很好！正是我需要的。你有一手好笔。"
+        $ update_ooc(-20)  # 减少 OOC：高效完成任务
+        $ cheat_count = 0  # 重置作弊计数（没有使用作弊）
+        jump scene_act1_forged_success
+    
+    elif stroke_result == "cheat":
+        # 使用开挂完成
+        me "我的笔仿佛被某种力量引导……"
+        me "几秒钟内，完美的字迹就呈现在纸面上。"
+        show hong amazed at center
+        hong "这……这笔迹，简直是神笔！"
+        $ update_ooc(-50)  # 减少 OOC：虽然完成了但作弊成本高
+        $ cheat_count += 1
+        jump scene_act1_forged_success
+    
+    else:
+        # 失败或取消
+        me "我笔抖了一下……"
+        show hong frown at center
+        hong "再来一遍！"
+        jump scene_act1_forged_document
+
+
+################################################################################
+## 示范 3：深夜潜行（九宫格一笔画）调用
+################################################################################
+
+label scene_act2_night_infiltration():
+    """
+    第二幕：深夜潜入洪府，需要避开巡逻队的路线
+    玩家需要规划一条从入口(0)到卧房(8)的安全路线
+    """
+    scene bg hong_mansion_night
+    
+    me "四周围上了巡逻队……"
+    me "我需要找到一条安全的路线深入洪府。"
+    
+    # 初始化九宫格一笔画游戏
+    $ init_nine_puzzle()
+    
+    # 调用九宫格路径规划小游戏
+    $ path_result = renpy.call_screen("nine_puzzle_path")
+    
+    # 根据结果处理
+    if path_result == "success":
+        # 成功规划路线并到达终点
+        me "终于……躲过了所有巡逻队。我已经到达目标区域了。"
+        $ update_ooc(-15)  # 减少 OOC：成功完成危险任务
+        jump scene_act2_infiltration_success
+    
+    elif path_result == "cheat":
+        # 使用开挂（分身术）
+        me "我的身体瞬间分化出无数幻象……"
+        me "巡逻队被彻底迷惑了，我轻松地穿过了整个院落。"
+        $ update_ooc(-45)  # 减少 OOC：作弊成本较高
+        $ cheat_count += 1
+        jump scene_act2_infiltration_success
+    
+    elif path_result == "fail":
+        # 触发危险（被巡逻队发现）
+        me "糟糕！我被发现了！"
+        show red at center
+        "{color=#8B0000}巡逻队的手电筒光芒扫向我……{/color}"
+        
+        me "……这一次我失败了。"
+        
+        # OOC 值增加（失败）
+        $ update_ooc(20)
+        
+        # 可以选择重试或 Game Over
+        menu:
+            "重新尝试":
+                jump scene_act2_night_infiltration
+            "放弃（导致 Game Over）":
+                jump game_over_mission_failed
+
+
+################################################################################
+## 综合测试 Label（快速验证所有小游戏）
+################################################################################
+
+label test_all_minigames():
+    """
+    快速测试所有三个小游戏的综合 label
+    用于开发和测试时快速验证所有小游戏功能
+    """
+    $ renpy.notify("开始综合小游戏测试……")
+    
+    menu:
+        "选择要测试的小游戏：":
+        
+        "1. 脸谱复原（拖拽拼图）":
+            jump test_puzzle
+        
+        "2. 伪造婚书（笔画描红）":
+            jump test_stroke
+        
+        "3. 深夜潜行（九宫格路线）":
+            jump test_nine_puzzle
+        
+        "返回主菜单":
+            jump start
+
+
+label test_puzzle():
+    me "开始脸谱复原测试……"
+    $ init_puzzle_game()
+    $ result = renpy.call_screen("puzzle_restoration")
+    me f"测试结果：{result}"
+    jump test_all_minigames
+
+
+label test_stroke():
+    me "开始描红笔画测试……"
+    $ init_stroke_tracker()
+    $ result = renpy.call_screen("stroke_writing")
+    me f"测试结果：{result}"
+    jump test_all_minigames
+
+
+label test_nine_puzzle():
+    me "开始九宫格路线测试……"
+    $ init_nine_puzzle()
+    $ result = renpy.call_screen("nine_puzzle_path")
+    me f"测试结果：{result}"
+    jump test_all_minigames
+
+
+################################################################################
+## 快速参考：小游戏API 文档
+################################################################################
+
+"""
+【小游戏调用速查表】
+
+1. 脸谱复原小游戏
+   初始化: $ init_puzzle_game()
+   调用: $ result = renpy.call_screen("puzzle_restoration")
+   返回值: "success" | "cheat" | "reset"
+   核心类: PuzzleGame, PuzzleFragment
+   
+   关键参数配置位置: script.rpy 的 init_puzzle_game() 函数
+   - 碎片数量: puzzle_game.num_fragments
+   - 碎片位置: fragment_configs 中的目标坐标 (target_x, target_y)
+   - 吸附容差: 第 5 个参数，默认 20px
+
+2. 伪造婚书（描红笔画）
+   初始化: $ init_stroke_tracker()
+   调用: $ result = renpy.call_screen("stroke_writing")
+   返回值: "success" | "cheat" | 其他
+   核心类: StrokeTracker, StrokeCheckpoint
+   
+   关键参数配置位置: script.rpy 的 init_stroke_tracker() 函数
+   - 检查点数量和位置: checkpoints 列表
+   - 各检查点触发半径: 第 4 个参数，默认 15px
+   - 时间限制: time_limit 参数，默认 10.0 秒
+   - 背景图片: bg_image 参数，如 "images/hui_character.png"
+
+3. 深夜潜行（九宫格路线）
+   初始化: $ init_nine_puzzle()
+   调用: $ result = renpy.call_screen("nine_puzzle_path")
+   返回值: "success" | "cheat" | "fail"
+   核心类: NinePuzzleGame
+   
+   关键参数配置位置: minigames.py 的 NinePuzzleGame 类
+   - 邻接关系: adjacency 字典（定义哪些节点相邻）
+   - 危险路线: dangerous_edges 集合（禁止路线）
+   - 起点: 0（左上）
+   - 终点: 8（右下）
+
+【OOC值影响参考】
+
+脸谱复原:
+  - 成功: OOC -10
+  - 开挂: OOC -40
+
+描红笔画:
+  - 成功: OOC -20
+  - 开挂: OOC -50
+
+九宫格路线:
+  - 成功: OOC -15
+  - 开挂: OOC -45
+  - 失败: OOC +20
+
+【文件结构说明】
+
+- minigames.py: 核心游戏逻辑类定义
+- minigames_screens.rpy: Ren'Py 屏幕定义
+- script.rpy: init python 中的初始化函数 + label 调用示例
+
+集成步骤:
+1. 将 minigames.py 放在 game/ 目录下
+2. 将 minigames_screens.rpy 的内容合并到 screens.rpy，或保持独立
+3. 在 script.rpy 中的相应位置调用 init_xxx_game() 和 renpy.call_screen()
+"""
