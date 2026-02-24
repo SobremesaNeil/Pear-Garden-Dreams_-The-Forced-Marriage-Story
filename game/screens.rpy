@@ -2067,13 +2067,17 @@ screen dwrg_trial(round_num=1):
     # 并检测指针进入/离开安全区，播放音效提示
     # ========================================
     timer 0.016 action [
-        SetScreenVariable("dwrg_pointer_pos", (GetTime() % 6.0) / 6.0),
-        SetScreenVariable("dwrg_time_remaining", max(0, 5.0 - (GetTime() % 5.0))),
+        SetScreenVariable("dwrg_pointer_pos", (time.time() % 6.0) / 6.0),
+        
+        # 倒计时显示逻辑（假设总时间5秒）
+        SetScreenVariable("dwrg_time_remaining", max(0, 5.0 - (time.time() % 5.0))),
+        
         # 当指针进入安全区 (0.3-0.7) 且状态锁为 False 时，播放提示音
-        If(And((GetTime() % 6.0) / 6.0 >= 0.3, (GetTime() % 6.0) / 6.0 <= 0.7, Not(in_safe_zone)),
+        If(0.3 <= (time.time() % 6.0) / 6.0 <= 0.7 and not in_safe_zone,
            [Play("sound", "audio/beep.ogg"), SetScreenVariable("in_safe_zone", True)]),
-        # 当指针离开安全区 且 状态锁为 True 时，重置状态锁
-        If(And(Or((GetTime() % 6.0) / 6.0 < 0.3, (GetTime() % 6.0) / 6.0 > 0.7), in_safe_zone),
+           
+        # 当指针离开安全区时，如果状态锁为 True，则重置状态锁
+        If(((time.time() % 6.0) / 6.0 < 0.3 or (time.time() % 6.0) / 6.0 > 0.7) and in_safe_zone,
            SetScreenVariable("in_safe_zone", False))
     ] repeat True
     

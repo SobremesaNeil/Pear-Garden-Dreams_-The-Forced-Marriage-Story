@@ -212,17 +212,22 @@ label start:
     
     me "我需要复原被碎裂的脸谱……"
     
-    menu:
-        "　[手动拼合] 仔细将碎片拼合":
-            $ update_ooc(-20)
-            me "我深吸一口气，开始仔细地拼合每一个碎片……"
-            me "一点一点地，脸谱在我手中慢慢复原了……"
-        
-        "　[一键开挂 (Skip)]":
-            $ update_ooc(-20)
-            $ cheat_count += 1
-            me "算了，我直接跳过这个步骤……"
-            me "以某种不可思议的力量，碎片在瞬间复原了。"
+    # 初始化并调用脸谱复原小游戏
+    $ init_puzzle_game()
+    $ puzzle_result = renpy.call_screen("puzzle_restoration")
+    
+    if puzzle_result == "success":
+        # ========== 成功完成 ==========
+        $ update_ooc(-20)
+        me "我深吸一口气，开始仔细地拼合每一个碎片……"
+        me "一点一点地，脸谱在我手中慢慢复原了……"
+    
+    elif puzzle_result == "cheat":
+        # ========== 一键开挂 ==========
+        $ update_ooc(-20)
+        $ cheat_count += 1
+        me "算了，我直接跳过这个步骤……"
+        me "以某种不可思议的力量，碎片在瞬间复原了。"
     
     # 系统提示
     me "[系统] 脸谱已复原。"
@@ -341,8 +346,9 @@ label forged_document_minigame:
     me "三秒钟内必须落笔完美，否则一切都会露陷。"
     me "笔尖悬在纸上方，我等待着准备的时刻……"
     
-    # 调用 QTE 屏幕
-    $ qte_result = renpy.call_screen("qte_bar", time_limit=3.0)
+    # 初始化并调用笔画描红小游戏
+    $ init_stroke_tracker()
+    $ qte_result = renpy.call_screen("stroke_writing")
     
     if qte_result == "success":
         # ========== 完美成功 ==========
@@ -473,94 +479,64 @@ label scene_5_5_rescue:
 
 label scene_5_5_stealth_game:
     """
-    潜行小游戏：连续选对 3 个方向避开家丁巡逻
-    - 选对：stealth_correct_steps + 1，继续游戏
-    - 选错：OOC + 30，屏幕闪红，重新开始
-    - 开挂：OOC - 50，cheat_count + 1，直接获胜
+    潜行小游戏：使用九宫格一笔画避开巡逻队
+    - 成功：避开危险路线，到达终点（节点8）
+    - 失败：踩到红线（危险路线），被发现
+    - 开挂：使用分身术直接成功
     """
     
     # 重置潜行步数计数
     $ stealth_correct_steps = 0
     
-    # 显示 HUD
-    show screen stealth_minigame
+    # 主角内心独白
+    me "我必须小心翼翼地规划路线，避开家丁的巡逻红线……"
+    pause 0.5
     
-    # 游戏循环
-    label stealth_game_loop:
+    # 初始化并调用九宫格一笔画小游戏
+    $ init_nine_puzzle()
+    $ stealth_result = renpy.call_screen("nine_puzzle_path")
+    
+    if stealth_result == "success":
+        # ========== 成功规划路线 ==========
+        $ update_ooc(-15)
+        me "终于……躲过了所有巡逻队。我已经到达了目标区域。"
+        jump scene_5_5_stealth_success
+    
+    elif stealth_result == "cheat":
+        # ========== 使用分身术（一键开挂）==========
+        $ update_ooc(-50)
+        $ cheat_count += 1
         
-        # 随机生成目标方向
-        $ import random
-        $ stealth_target_direction = random.choice(["left", "forward", "right"])
+        me "我仿佛分裂成了两个世界……"
+        me "身体在一个次元行动，而家丁们的目光无法捕捉到我。"
+        pause 1.0
+        me "转眼间，我已经出现在了偏房外。"
+        pause 0.5
         
-        # 显示提示信息（根据目标方向生成动态线索）
-        if stealth_target_direction == "left":
-            me "右侧廊道传来密集的脚步声，正前方的屋顶也有瓦片松动的声音……只有左侧的墙角深陷在阴影中，安静得可怕。"
-        elif stealth_target_direction == "forward":
-            me "两翼的巡逻队正在靠近，灯笼的火光已经照亮了左右两侧的石板路。唯有正前方那座假山旁的矮屋顶，似乎是个盲区。"
-        else:  # stealth_target_direction == "right"
-            me "左边有猎犬的低吼，正前方的门被风吹得吱呀作响，似乎有人把守。反而是右侧那条平时没人走的废弃廊道，此刻连一丝风声都没有。"
+        jump scene_5_5_stealth_success
+    
+    else:
+        # ========== 触发危险（踩到红线）==========
+        $ update_ooc(30)
         
-        # 调用 stealth_minigame screen，等待玩家输入
-        $ result = renpy.call_screen("stealth_minigame")
+        # 屏幕闪红效果
+        show text "触发警报！你踩到了巡逻队的路线！" at truecenter with flash
+        pause 1.0
+        hide text
         
-        # 处理玩家的选择
-        if result == stealth_target_direction:
-            # ========== 选择正确 ==========
-            $ stealth_correct_steps += 1
-            
-            # 提示正确
-            show text "正确！你成功躲过了家丁的视线。" at truecenter with vpunch
-            pause 1.5
-            hide text
-            
-            # 检查是否已经连续成功 3 次
-            if stealth_correct_steps >= 3:
-                # 潜行成功！
-                hide screen stealth_minigame
-                jump scene_5_5_stealth_success
-            else:
-                # 继续游戏
-                pause 0.5
-                jump stealth_game_loop
+        # 检查 OOC 值是否达到致命值
+        $ check_ooc()
         
-        elif result == "cheat":
-            # ========== 使用一键开挂 ==========
-            $ update_ooc(-50)
-            $ cheat_count += 1
-            
-            hide screen stealth_minigame
-            
-            me "我仿佛分裂成了两个世界……"
-            me "身体在一个次元行动，而家丁们的目光无法捕捉到我。"
-            pause 1.0
-            me "转眼间，我已经出现在了偏房外。"
-            pause 0.5
-            
-            jump scene_5_5_stealth_success
+        # 如果还活着，重新提示
+        show text "不行！我得重新规划……" at truecenter
+        pause 2.0
+        hide text
         
-        else:
-            # ========== 选择错误 ==========
-            $ update_ooc(30)
-            $ stealth_correct_steps = 0  # 重置步数
-            
-            # 屏幕闪红效果
-            show text "错误！你被家丁发现了！" at truecenter with flash
-            pause 1.0
-            hide text
-            
-            # 检查 OOC 值是否达到致命值
-            $ check_ooc()
-            
-            # 如果还活着，重新提示
-            show text "警报！你的行动惊动了家丁！必须重新规划路线！" at truecenter
-            pause 2.0
-            hide text
-            
-            me "不行！我得重新规划……"
-            pause 0.5
-            
-            # 重置游戏，再试一次
-            jump stealth_game_loop
+        me "这条路走不通……我必须重新找个安全的路线。"
+        pause 0.5
+        
+        # 重新开始潜行小游戏
+        jump scene_5_5_stealth_game
 
 ################################################################################
 ## SCENE 5.5.2：潜行成功 - 救出兰中玉
