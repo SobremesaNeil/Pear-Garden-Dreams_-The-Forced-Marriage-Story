@@ -280,7 +280,7 @@ screen nine_puzzle_path():
                     $ x2, y2 = node_positions.get(node_b, (0, 0))
                     
                     # 绘制线条（从 node_a 到 node_b）
-                    add ui.Line((x1, y1), (x2, y2), "#00FF00", 3)
+                    add Line((x1, y1), (x2, y2), "#00FF00", 3)
             
             # 绘制危险路线（红虚线）
             if nine_puzzle_game:
@@ -290,7 +290,7 @@ screen nine_puzzle_path():
                     $ x2, y2 = node_positions.get(node_b, (0, 0))
                     
                     # 绘制红色虚线
-                    add ui.Line((x1, y1), (x2, y2), "#FF0000", 2, dash_pattern=[5, 5])
+                    add Line((x1, y1), (x2, y2), "#FF0000", 2, dash_pattern=[5, 5])
             
             # 绘制节点
             for node_num in range(9):
@@ -465,28 +465,135 @@ screen _nine_puzzle_success_popup():
 ################################################################################
 
 init python:
-    """辅助绘制函数"""
+    """Ren'Py 原生 Canvas 绘图实现"""
     
     class Circle(renpy.Displayable):
-        \"\"\"简单的圆形绘制\"\"\"
+        """
+        圆形绘制 Displayable
+        使用 Ren'Py 原生 canvas() API 绘制实心圆
+        """
         def __init__(self, radius, color="#FFFFFF", **kwargs):
             super(Circle, self).__init__(**kwargs)
             self.radius = radius
             self.color = color
         
         def render(self, width, height, st, at):
-            surf = renpy.Render(width, height)
-            # 绘制圆形（使用简单的弧线）
-            import pygame
+            # 创建正方形 Canvas，边长为圆的直径
             canvas_size = self.radius * 2
-            # 这里是简化实现，实际项目可用 pygame.draw.circle
+            surf = renpy.Render(canvas_size, canvas_size)
+            
+            # 获取 Canvas 对象用于绘制
+            canvas = surf.canvas()
+            
+            # 将色值字符串转换为 renpy.color.Color 对象
+            try:
+                color_obj = renpy.color.Color(self.color)
+            except:
+                color_obj = renpy.color.Color("#FFFFFF")
+            
+            # 绘制实心圆（圆心在 (radius, radius)，半径为 radius）
+            canvas.circle(color_obj, (self.radius, self.radius), self.radius)
+            
             return surf
     
     
-    class ui:
-        \"\"\"简单的 UI 工具类\"\"\"
-        @staticmethod
-        def Line(start_pos, end_pos, color, width, dash_pattern=None):
-            \"\"\"绘制直线（占位符）\"\"\"
-            # 实现：使用 pygame 或其他库绘制线条
-            return Solid("#00000000")  # 占位
+    class Line(renpy.Displayable):
+        """
+        直线绘制 Displayable
+        使用 Ren'Py 原生 canvas() API 绘制直线（支持虚线）
+        """
+        def __init__(self, start_pos, end_pos, color, width, dash_pattern=None, **kwargs):
+            super(Line, self).__init__(**kwargs)
+            self.start_pos = start_pos
+            self.end_pos = end_pos
+            self.color = color
+            self.width = width
+            self.dash_pattern = dash_pattern
+        
+        def render(self, width, height, st, at):
+            # 创建一个覆盖足够大的 Canvas（包含两个端点）
+            x1, y1 = self.start_pos
+            x2, y2 = self.end_pos
+            
+            # 计算 Canvas 的尺寸和偏移量
+            min_x = min(x1, x2)
+            max_x = max(x1, x2)
+            min_y = min(y1, y2)
+            max_y = max(y1, y2)
+            
+            # 添加一些边距（为了防止线条被裁剪）
+            margin = self.width + 5
+            canvas_width = int(max_x - min_x + margin * 2)
+            canvas_height = int(max_y - min_y + margin * 2)
+            
+            # 防止 Canvas 尺寸过小
+            if canvas_width < 1:
+                canvas_width = 1
+            if canvas_height < 1:
+                canvas_height = 1
+            
+            surf = renpy.Render(canvas_width, canvas_height)
+            canvas = surf.canvas()
+            
+            # 将色值字符串转换为 renpy.color.Color 对象
+            try:
+                color_obj = renpy.color.Color(self.color)
+            except:
+                color_obj = renpy.color.Color("#FFFFFF")
+            
+            # 调整坐标（相对于 Canvas 偏移）
+            adjusted_start = (x1 - min_x + margin, y1 - min_y + margin)
+            adjusted_end = (x2 - min_x + margin, y2 - min_y + margin)
+            
+            # 绘制线条
+            if self.dash_pattern:
+                # 虚线实现：使用多个短线段拼接
+                self._draw_dashed_line(canvas, color_obj, adjusted_start, adjusted_end, 
+                                      self.width, self.dash_pattern)
+            else:
+                # 实线绘制
+                canvas.line(color_obj, adjusted_start, adjusted_end, self.width)
+            
+            return surf
+        
+        def _draw_dashed_line(self, canvas, color, start, end, width, dash_pattern):
+            """
+            绘制虚线
+            dash_pattern: [dash_length, gap_length, ...]
+            """
+            import math
+            
+            x1, y1 = start
+            x2, y2 = end
+            
+            # 计算线段总长度和方向
+            total_len = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+            if total_len == 0:
+                return
+            
+            # 单位方向向量
+            dx = (x2 - x1) / total_len
+            dy = (y2 - y1) / total_len
+            
+            # 交替绘制虚线段和空白段
+            current_pos = 0.0
+            pattern_idx = 0
+            
+            while current_pos < total_len:
+                # 当前模式段长度
+                segment_len = dash_pattern[pattern_idx % len(dash_pattern)]
+                next_pos = min(current_pos + segment_len, total_len)
+                
+                # 计算端点坐标
+                seg_start_x = x1 + dx * current_pos
+                seg_start_y = y1 + dy * current_pos
+                seg_end_x = x1 + dx * next_pos
+                seg_end_y = y1 + dy * next_pos
+                
+                # 奇数索引是空白，偶数索引才绘制线段
+                if pattern_idx % 2 == 0:
+                    canvas.line(color, (seg_start_x, seg_start_y), 
+                               (seg_end_x, seg_end_y), width)
+                
+                current_pos = next_pos
+                pattern_idx += 1
