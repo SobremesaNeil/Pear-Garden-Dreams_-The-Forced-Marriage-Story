@@ -268,8 +268,8 @@ screen nine_puzzle_path():
         
         # 绘制节点和连线
         fixed:
-            xysize (800, 400)
-            xalign 0.5
+            # 修复：将其改为全屏大小，并移除 xalign 0.5，以完美匹配下方写入的绝对坐标
+            xysize (config.screen_width, config.screen_height)
             
             # 首先绘制已经走过的路径（绿线）
             if nine_puzzle_game and nine_puzzle_game.path_edges:
@@ -511,28 +511,8 @@ init python:
             self.dash_pattern = dash_pattern
         
         def render(self, width, height, st, at):
-            # 创建一个覆盖足够大的 Canvas（包含两个端点）
-            x1, y1 = self.start_pos
-            x2, y2 = self.end_pos
-            
-            # 计算 Canvas 的尺寸和偏移量
-            min_x = min(x1, x2)
-            max_x = max(x1, x2)
-            min_y = min(y1, y2)
-            max_y = max(y1, y2)
-            
-            # 添加一些边距（为了防止线条被裁剪）
-            margin = self.width + 5
-            canvas_width = int(max_x - min_x + margin * 2)
-            canvas_height = int(max_y - min_y + margin * 2)
-            
-            # 防止 Canvas 尺寸过小
-            if canvas_width < 1:
-                canvas_width = 1
-            if canvas_height < 1:
-                canvas_height = 1
-            
-            surf = renpy.Render(canvas_width, canvas_height)
+            # 修复：直接创建全屏大小的画布，避免局部坐标系导致的位移
+            surf = renpy.Render(renpy.config.screen_width, renpy.config.screen_height)
             canvas = surf.canvas()
             
             # 将色值字符串转换为 renpy.color.Color 对象
@@ -541,18 +521,12 @@ init python:
             except:
                 color_obj = renpy.color.Color("#FFFFFF")
             
-            # 调整坐标（相对于 Canvas 偏移）
-            adjusted_start = (x1 - min_x + margin, y1 - min_y + margin)
-            adjusted_end = (x2 - min_x + margin, y2 - min_y + margin)
-            
-            # 绘制线条
+            # 修复：直接使用绝对坐标绘制，无需计算 adjusted 偏移
             if self.dash_pattern:
-                # 虚线实现：使用多个短线段拼接
-                self._draw_dashed_line(canvas, color_obj, adjusted_start, adjusted_end, 
+                self._draw_dashed_line(canvas, color_obj, self.start_pos, self.end_pos, 
                                       self.width, self.dash_pattern)
             else:
-                # 实线绘制
-                canvas.line(color_obj, adjusted_start, adjusted_end, self.width)
+                canvas.line(color_obj, self.start_pos, self.end_pos, self.width)
             
             return surf
         
