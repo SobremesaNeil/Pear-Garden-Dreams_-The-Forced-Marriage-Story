@@ -270,42 +270,55 @@ label act1_continuing_story:
 label forged_document_minigame:
     $ ooc_checkpoint = ooc_value
     me "我拿起毛笔，墨已经磨好了。"
-    me "笔尖在纸上，我开始描红……"
-    me "首先，就是那最关键的'婚'字。"
-    menu:
-        "　[认真描红] 完美写下'婚'字":
-            $ update_ooc(-20)
-            me "我沉下心来，笔画一个一个地落下。"
-            me "每一笔都是精心雕琢，笔锋有力但不失柔和。"
-            me "最后一笔收笔，完美。"
-            show hong happy at center
-            hong "哈哈！好字！"
-            hong "这笔迹，足以骗过任何人。"
-            hong "你这小子，真有一手啊。"
-            hong "给，这是赏赐你的。"
-            me "感谢大人！"
-            jump forged_document_success
-        "　[描红失败] 字迹歪扭":
-            $ update_ooc(10)
-            me "我笔颤抖了一下……"
-            me "最后一笔没有把握好，字看起来歪歪斜斜。"
-            show hong frown at center
-            hong "嗯？这笔迹……有点问题啊。"
-            hong "太草率了。重写！"
-            me "是……立刻重写……"
-            jump forged_document_minigame
-        "　[一键开挂 (Auto-Write)]":
-            $ update_ooc(-50)
-            $ cheat_count += 1
-            me "我的手仿佛获得了某种力量……"
-            me "笔尖飞快地舞动，字迹工整得不可思议。"
-            me "几秒钟内，一个完美的'婚'字就跃然纸上。"
-            show hong amazed at center
-            hong "这……这笔迹，简直是鬼斧神工！"
-            hong "你这小子，不简单啊！"
-            hong "给，这是赏赐你的。"
-            me "感谢大人！"
-            jump forged_document_success
+    me "这是最关键的一刻……我深吸一口气。"
+    me "三秒钟内必须落笔完美，否则一切都会露陷。"
+    me "笔尖悬在纸上方，我等待着准备的时刻……"
+    
+    # 调用 QTE 屏幕
+    $ qte_result = renpy.call_screen("qte_bar", time_limit=3.0)
+    
+    if qte_result == "success":
+        # ========== 完美成功 ==========
+        $ update_ooc(-20)
+        me "我沉下心来，笔画一个一个地落下。"
+        me "每一笔都是精心雕琢，笔锋有力但不失柔和。"
+        me "最后一笔收笔……完美！"
+        show hong happy at center
+        hong "哈哈！好字！"
+        hong "这笔迹，足以骗过任何人。"
+        hong "你这小子，真有一手啊。"
+        hong "给，这是赏赐你的。"
+        me "感谢大人！"
+        jump forged_document_success
+        
+    elif qte_result == "fail":
+        # ========== 失误重试 ==========
+        $ update_ooc(10)
+        me "我笔……颤抖了一下……"
+        me "最后一笔没有把握好，字看起来歪歪斜斜。"
+        show hong frown at center
+        hong "嗯？这笔迹……有点问题啊。"
+        hong "太草率了。重写！"
+        me "是……立刻重写……"
+        pause 0.5
+        me "（手心冒汗……为什么这一次这么难？）"
+        me "（每次重新开始，压力就更大一分……）"
+        me "（必须集中精力，不能再失误了……）"
+        jump forged_document_minigame
+        
+    elif qte_result == "cheat":
+        # ========== 一键开挂 ==========
+        $ update_ooc(-50)
+        $ cheat_count += 1
+        me "我的手仿佛获得了某种力量……"
+        me "笔尖飞快地舞动，字迹工整得不可思议。"
+        me "几秒钟内，一个完美的'婚'字就跃然纸上。"
+        show hong amazed at center
+        hong "这……这笔迹，简直是鬼斧神工！"
+        hong "你这小子，不简单啊！"
+        hong "给，这是赏赐你的。"
+        me "感谢大人！"
+        jump forged_document_success
 
 # 伪证成功
 label forged_document_success:
@@ -412,8 +425,13 @@ label scene_5_5_stealth_game:
         $ import random
         $ stealth_target_direction = random.choice(["left", "forward", "right"])
         
-        # 显示提示信息
-        me "前方是十字路口，我听到了家丁的脚步声……"
+        # 显示提示信息（根据目标方向生成动态线索）
+        if stealth_target_direction == "left":
+            me "右侧廊道传来密集的脚步声，正前方的屋顶也有瓦片松动的声音……只有左侧的墙角深陷在阴影中，安静得可怕。"
+        elif stealth_target_direction == "forward":
+            me "两翼的巡逻队正在靠近，灯笼的火光已经照亮了左右两侧的石板路。唯有正前方那座假山旁的矮屋顶，似乎是个盲区。"
+        else:  # stealth_target_direction == "right"
+            me "左边有猎犬的低吼，正前方的门被风吹得吱呀作响，似乎有人把守。反而是右侧那条平时没人走的废弃廊道，此刻连一丝风声都没有。"
         
         # 调用 stealth_minigame screen，等待玩家输入
         $ result = renpy.call_screen("stealth_minigame")
