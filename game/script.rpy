@@ -3,7 +3,7 @@
 ################################################################################
 ## 初始化阶段：OOC 系统核心设置
 ################################################################################
-
+define me = Character("我", image="me")
 init python:
     """
     OOC（Out of Character，角色崩坏度）系统
@@ -64,6 +64,10 @@ define lian = Character("小莲", color="#FF69B4")
 define hong = Character("洪彦龙", color="#8B0000")
 define zhang = Character("张清", color="#228B22")
 define lan = Character("兰中玉", color="#4682B4")
+define servant_a = Character("家丁甲", color="#696969")
+define servant_b = Character("家丁乙", color="#696969")
+define servant_c = Character("家丁丙", color="#696969")
+define servant_d = Character("家丁丁", color="#696969")
 
 ################################################################################
 ## 核心游戏变量
@@ -156,8 +160,11 @@ init python:
 
 label start:
     
-    # 第一场景：破败小屋 - 黄昏
-    scene bg broken_cottage_dusk
+    # ========================================
+    # 序章：破败小屋的光影演出
+    # ========================================
+    # 场景设置：初始背景为普通光线的破败小屋
+    scene bg broken_cottage with dissolve
     
     # 出现小莲，病态的样子
     show lian sick at center
@@ -170,35 +177,84 @@ label start:
     
     lian "你为我做了这么多……我真是……"
     
-    # 小莲剧烈咳嗽
+    # ========================================
+    # 光影转折点：戏剧高潮
+    # ========================================
+    # 小莲剧烈咳嗽 - 此刻阳光通过窗户倾泻而入
     lian "咳咳咳！"
     
-    # 在这里可以添加吐血的图片或效果
+    # 【光影转折】
+    # 切换背景：普通小屋 → 阳光照亮的小屋
+    scene bg broken_cottage_sun with dissolve
+    
+    # 时光流逝的旁白，强化光线与现实苦难的对比
+    me "刺眼的阳光忽然透过窗户倾泻进来，照在她苍白的脸庞上。"
+    
+    me "那光线本该温暖，却只映照出她病态的虚弱和眼中的绝望。"
+    
+    # 血色细节：强化视觉冲击
     lian "咳……"
+    
+    # 血手帕被阳光照亮，产生刺目的视觉对比
+    me "她用手绢捂住嘴，手绢上的血迹在阳光下闪闪发光……"
+    
+    me "那是一种讽刺的美：希望之光洒在绝望之上。"
     
     me "小莲！"
     
-    # 主角内心独白
+    # 主角内心独白 - 配合阳光的意象
     me "只要能救小莲……做什么都行。"
     
+    me "即使这残酷的阳光也见证了我的决心：无论如何，都要拯救她。"
+    
+    # 内心最深的承诺
     me "就算搭上我的命，我也在所不惜。"
     
-    # 场景转换到戏班后台
-    scene bg backstage
+    # ========================================
+    # 【戏班后台】定格动画演出
+    # 8张背景图 + 8句台词的完美咬合
+    # ========================================
     
-    # 主角手指被扎破，血滴在书上的特效
+    # 镜头 1：主角睁眼的瞬间
+    scene bg backstage_1 with dissolve
+    
     me "啊……"
     
-    # 显示刺痛和血滴的描述
+    # 镜头 2：手指刺痛的感受
+    scene bg backstage_2 with Dissolve(0.2)
+    
     me "手指被扎破了……"
+    
+    # 镜头 3：血滴在古籍上
+    scene bg backstage_3 with Dissolve(0.2)
     
     me "血滴在了这本古籍上……"
     
-    # 穿越时刻 - 显示 ooc_hud
+    # 镜头 4：主角环顾四周，逐渐清醒
+    scene bg backstage_4 with Dissolve(0.2)
+    
+    me "等等……这里是……？"
+    
+    # 显示 ooc_hud 系统界面
     show screen ooc_hud
     
-    # 穿越特效
-    me "这是……什么……"
+    # 镜头 5：主角意识到周围的异样
+    scene bg backstage_5 with Dissolve(0.2)
+    
+    me "这是……什么地方……"
+    
+    # 镜头 6：主角看向舞台方向，感到陌生
+    scene bg backstage_6 with Dissolve(0.2)
+    
+    me "为什么我会在这里？"
+    
+    # 镜头 7：时空扭曲的感觉开始侵袭
+    scene bg backstage_7 with Dissolve(0.2)
+    
+    me "这一切……太奇怪了……"
+    
+    # 镜头 8：最后的意识消散
+    scene bg backstage_8 with Dissolve(0.2)
     
     me "眼前突然一黑……"
     
@@ -261,7 +317,7 @@ label act1_hong_mansion:
             me "对……对不起！我知道错了！"
             me "请您饶恕我这一次……"
             hong "哼。算你有眼力见。"
-            jump act1_continuing_story
+            jump scene_2_messenger_montage
         
         "　(B) [挺直腰板，危险] 抬起头，与他对视":
             $ update_ooc(25)
@@ -281,7 +337,7 @@ label act1_hong_mansion:
                     $ update_ooc(-10)
                     me "我……我说错了，对不起……"
                     hong "哼，这样才对。"
-                    jump act1_continuing_story
+                    jump scene_2_messenger_montage
 
 # 游戏结束标签
 label game_over:
@@ -314,28 +370,168 @@ label game_over:
     # 返回到洪彦龙咆哮前的场景
     jump act1_hong_mansion
 
+################################################################################
+## SCENE 2：洪府书房 - 连环急报蒙太奇
+################################################################################
+
+label scene_2_messenger_montage:
+    """
+    电影级演出：连环急报蒙太奇
+    利用 5 张背景图（bg_hong_study_1 到 bg_hong_study_5）展现洪彦龙的怒火层层叠加。
+    每张图里都有不同衣着的仆人在跪地禀报。
+    节奏越来越快，最后以主角（贾斯文）的登场献计收尾。
+    """
+    
+    # ========================================
+    # 镜头 1：家丁甲 - 第一个坏消息（慌张）
+    # ========================================
+    scene bg hong_study_1 with dissolve
+    
+    # 画外音：快速脚步声
+    play sound "audio/footsteps_rushed.ogg"
+    
+    servant_a "大……大人！不好了！"
+    servant_a "那个女人……那个兰中玉……她……她反抗了！"
+    servant_a "我们按照您的吩咐，去让她吃饭，她……她直接把饭碗摔了！"
+    servant_a "还骂我们是'下等奴才'，说要……要告官！"
+    
+    # 短暂停顿，等待反应
+    pause 1.0
+    
+    # ========================================
+    # 镜头 2：家丁乙 - 升级的坏消息（快速切换）
+    # ========================================
+    scene bg hong_study_2 with Dissolve(0.2)
+    
+    # 快速的脚步声和门撞击音
+    play sound "audio/footsteps_faster.ogg"
+    
+    servant_b "大人！情况更糟了！"
+    servant_b "那女人跑到后花园去了！我们想控制住她，她……她挠伤了我三个人！"
+    servant_b "她还大喊大叫，说什么'这是强占民女'、'洪彦龙是恶棍'……"
+    servant_b "邻居都听到了！这必然要传出去啊！"
+    
+    # 快速积累压力
+    pause 0.8
+    
+    # ========================================
+    # 镜头 3：家丁丙 - 彻底的失控（配合 hpunch 横向冲击）
+    # ========================================
+    scene bg hong_study_3 with hpunch
+    
+    # 狂乱的脚步和喘息
+    play sound "audio/panic_breathing.ogg"
+    
+    servant_c "大……大人！她……她逃出府了！！！"
+    servant_c "就在刚才，她趁我们不注意，从侧门冲了出去！"
+    servant_c "现在她在大街上！衣衫褴褛，边走边骂……"
+    servant_c "在喊什么'洪彦龙强暴民女'、'大家来看啊'……"
+    servant_c "围观的人越来越多！眼看要成为众矢之的了！"
+    
+    pause 0.8
+    
+    # ========================================
+    # 镜头 4：洪彦龙的暴怒时刻（垂直冲击 vpunch + 音效）
+    # ========================================
+    scene bg hong_study_4 with vpunch
+    
+    # 拍案惊堂木的音效
+    play sound "audio/table_flip.ogg"
+    
+    # 显示暴怒的洪彦龙
+    show hong furious at center
+    
+    hong "【一群废物！！！】"
+    hong "养你们这些东西有什么用？！连一个女人都看不住？！"
+    hong "你们简直就是一帮蠢猪！！！"
+    
+    # 舞台暴力：掀翻桌子的画面效果
+    show text "【整个书房陷入混乱……】" at truecenter with vpunch
+    pause 0.5
+    hide text
+    
+    hong "现在她在大街上胡言乱语，这是要毁了我的名声！！"
+    hong "我需要一个解决方案，而且要立刻！！！"
+    
+    # 洪彦龙离场（或转身）
+    hide hong
+    
+    pause 1.0
+    
+    # ========================================
+    # 镜头 5：废墟中的最后仆人 + 主角登场（淡入，转折）
+    # ========================================
+    scene bg hong_study_5 with dissolve
+    
+    # 剧院般的沉寂，只有拉风箱的声音
+    play sound "audio/deep_breath.ogg"
+    
+    # 最后一个仆人的瑟瑟发抖
+    servant_d "大……大人……我们……我们该怎么办啊……"
+    
+    pause 1.0
+    
+    # 显示主角 - 从暗处走进书房，镇定自若
+    show me confident at center
+    
+    # 淡入背景音乐：沉着、智慧的主题
+    play music "audio/strategist_theme.ogg" loop
+    
+    # 舞台中心：主角献计的关键时刻
+    me "大人的遭遇，我已经听明白了。"
+    me "诸位家丁做得已经很尽力了，但这件事……不是武力能解决的。"
+    
+    # 主角走向中心，表现出睿智的气质
+    me "现在关键是，要用一个合法、体面的说法，把这个局面扭转过来。"
+    
+    # 洪彦龙冲出，期待答案
+    show hong intense at right
+    
+    hong "你有办法？"
+    
+    me "有。我建议，我们不如……主动出击。"
+    
+    # 镜头定格在这一刻，暗示即将进入关键的对话
+    pause 1.0
+    
+    me "既然她已经逃出去、闹出这么大的动静，我们就索性……给她一个'名分'。"
+    
+    hong "名分？"
+    
+    me "没错。一份婚书。"
+    
+    me "只要她签署了婚书、承认自己是您的妻子，那之前的所有反抗……"
+    
+    me "就变成了'新娘的任性'，而非'强占民女的证据'。"
+    
+    # 镜头缓缓拉远，展现这一刻的格局转变
+    scene bg hong_study_5 with dissolve
+    
+    show hong satisfied at right
+    show me confident at left
+    
+    hong "妙计！你这小子，果然有两把刷子。"
+    
+    hong "好，那就照你说的办。婚书呢？"
+    
+    me "大人，您给我一点时间……"
+    
+    me "我从前在县衙做过文书，写一份婚书……"
+    
+    # 过渡到正式对话场景
+    jump act1_continuing_story
+
 # 继续正常剧情
 label act1_continuing_story:
 
     scene bg hong_mansion
     show hong neutral at center
-    hong "从现在开始，你就听我的安排。"
-    me "是……"
-    hong "那个兰中玉啊，打进府后就茶饭不思。"
-    hong "好几天了，一粒米都不肯吃。"
-    hong "再这样下去，她要反水就麻烦了。"
-    me "大人，或许……我有个办法。"
-    hong "什么办法？"
-    me "既然她是自愿嫁给您的，那就让她看到婚书。"
-    me "只要她看到了婚书，确认了身份，就不会再有心结。"
-    hong "婚书？我这里还真没有……"
-    me "不如就……由我来写一份？"
-    hong "你会写这样的文书？"
-    me "我曾在县衙做过文书。这点小事不在话下。"
-    me "而且，我可以加入一些细节，让婚书更具说服力。"
-    me "比如，三日前在庙会上，您就已经当众收了十两银子并按下了手印。"
-    hong "妙啊！这样一来，就更显得名正言顺了。"
-    hong "那就劳烦你了。"
+    
+    hong "那就劳烦你了。立刻给我写一份婚书，必须无懈可击。"
+    hong "如果能让兰中玉心甘情愿地接受这个身份，你的赏赐少不了。"
+    
+    me "是，大人。我这就去准备。"
+    
     jump forged_document_minigame
 
 # 玩法环节 2：伪证
