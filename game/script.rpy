@@ -317,6 +317,15 @@ label start:
     
     me "我需要复原被碎裂的脸谱……"
     
+    # ========================================
+    # 小游戏状态锁定 (脸谱复原)
+    # ========================================
+    # 防止玩家在小游戏中使用 Skip(快进)、Rollback(回滚)、Menu(菜单)
+    $ renpy.block_rollback()      # 阻止滚轮强制回退
+    $ _skipping = False           # 禁用快进功能
+    $ _rollback = False           # 禁用回滚功能
+    $ _game_menu_screen = None    # 禁用右键/ESC菜单
+    
     # 初始化并调用脸谱复原小游戏
     $ init_puzzle_game()
     $ puzzle_result = renpy.call_screen("puzzle_restoration")
@@ -371,6 +380,13 @@ label start:
         
         pause 1.0
         scene black with Dissolve(1.0)
+    
+    # ========================================
+    # 小游戏状态解锁 (脸谱复原完成)
+    # ========================================
+    $ _skipping = True                # 恢复快进功能
+    $ _rollback = True                # 恢复回滚功能
+    $ _game_menu_screen = "save"      # 恢复菜单功能
     
     # 系统提示
     me "[系统] 脸谱已复原。"
@@ -623,6 +639,15 @@ label act1_continuing_story:
 
 # 玩法环节 2：伪证
 label forged_document_minigame:
+    # ========================================
+    # 小游戏状态锁定 (伪造婚书)
+    # ========================================
+    # 防止玩家在小游戏中使用 Skip(快进)、Rollback(回滚)、Menu(菜单)
+    $ renpy.block_rollback()      # 阻止滚轮强制回退
+    $ _skipping = False           # 禁用快进功能
+    $ _rollback = False           # 禁用回滚功能
+    $ _game_menu_screen = None    # 禁用右键/ESC菜单
+    
     $ ooc_checkpoint = ooc_value
     me "我拿起毛笔，墨已经磨好了。"
     me "这是最关键的一刻……我深吸一口气。"
@@ -660,6 +685,14 @@ label forged_document_minigame:
         me "（手心冒汗……为什么这一次这么难？）"
         me "（每次重新开始，压力就更大一分……）"
         me "（必须集中精力，不能再失误了……）"
+        
+        # ========================================
+        # 小游戏状态解锁 (伪造婚书失败重试前)
+        # ========================================
+        $ _skipping = True                # 恢复快进功能
+        $ _rollback = True                # 恢复回滚功能
+        $ _game_menu_screen = "save"      # 恢复菜单功能
+        
         jump forged_document_minigame
         
     elif qte_result == "cheat":
@@ -678,6 +711,13 @@ label forged_document_minigame:
 
 # 伪证成功
 label forged_document_success:
+    # ========================================
+    # 小游戏状态解锁 (伪造婚书完成)
+    # ========================================
+    $ _skipping = True                # 恢复快进功能
+    $ _rollback = True                # 恢复回滚功能
+    $ _game_menu_screen = "save"      # 恢复菜单功能
+    
     scene bg hong_mansion
     show hong neutral at center
     hong "婚书写完了？"
@@ -768,6 +808,15 @@ label scene_5_5_stealth_game:
     - 开挂：使用分身术直接成功
     """
     
+    # ========================================
+    # 小游戏状态锁定 (潜行避敌)
+    # ========================================
+    # 防止玩家在小游戏中使用 Skip(快进)、Rollback(回滚)、Menu(菜单)
+    $ renpy.block_rollback()      # 阻止滚轮强制回退
+    $ _skipping = False           # 禁用快进功能
+    $ _rollback = False           # 禁用回滚功能
+    $ _game_menu_screen = None    # 禁用右键/ESC菜单
+    
     # 重置潜行步数计数
     $ stealth_correct_steps = 0
     
@@ -818,6 +867,13 @@ label scene_5_5_stealth_game:
         me "这条路走不通……我必须重新找个安全的路线。"
         pause 0.5
         
+        # ========================================
+        # 小游戏状态解锁 (潜行避敌失败重试前)
+        # ========================================
+        $ _skipping = True                # 恢复快进功能
+        $ _rollback = True                # 恢复回滚功能
+        $ _game_menu_screen = "save"      # 恢复菜单功能
+        
         # 重新开始潜行小游戏
         jump scene_5_5_stealth_game
 
@@ -829,6 +885,13 @@ label scene_5_5_stealth_success:
     """
     潜行成功，主角成功到达兰中玉的偏房。
     """
+    
+    # ========================================
+    # 小游戏状态解锁 (潜行完成)
+    # ========================================
+    $ _skipping = True                # 恢复快进功能
+    $ _rollback = True                # 恢复回滚功能
+    $ _game_menu_screen = "save"      # 恢复菜单功能
     
     # 停止背景音乐
     stop music
@@ -1284,6 +1347,15 @@ label scene_6_dwrg_trial:
     - Cheat：使用一键开挂 → OOC-50，cheat_count+1
     """
     
+    # ========================================
+    # 小游戏状态锁定 (DWRG公堂审判)
+    # ========================================
+    # 防止玩家在小游戏中使用 Skip(快进)、Rollback(回滚)、Menu(菜单)
+    $ renpy.block_rollback()      # 阻止滚轮强制回退
+    $ _skipping = False           # 禁用快进功能
+    $ _rollback = False           # 禁用回滚功能
+    $ _game_menu_screen = None    # 禁用右键/ESC菜单
+    
     # 显示 HUD
     show screen ooc_hud
     
@@ -1380,6 +1452,14 @@ label scene_6_dwrg_trial:
                 # 否则允许重新尝试
                 me "不……不是这样的，大人……"
                 pause 1.0
+                
+                # ========================================
+                # 小游戏状态解锁 (DWRG失败重试前)
+                # ========================================
+                $ _skipping = True                # 恢复快进功能
+                $ _rollback = True                # 恢复回滚功能
+                $ _game_menu_screen = "save"      # 恢复菜单功能
+                
                 jump dwrg_round_begin
         
         elif dwrg_result_raw == "miss":
@@ -1402,6 +1482,14 @@ label scene_6_dwrg_trial:
             # 否则允许重试
             me "大人，请再给我一次机会……"
             pause 1.0
+            
+            # ========================================
+            # 小游戏状态解锁 (DWRG超时重试前)
+            # ========================================
+            $ _skipping = True                # 恢复快进功能
+            $ _rollback = True                # 恢复回滚功能
+            $ _game_menu_screen = "save"      # 恢复菜单功能
+            
             jump dwrg_round_begin
         
         elif dwrg_result_raw == "cheat_auto_hit":
@@ -1485,6 +1573,13 @@ label scene_6_dwrg_trial:
 
 # 公堂对峙成功
 label act3_courtroom_success:
+    # ========================================
+    # 小游戏状态解锁 (DWRG公堂完成)
+    # ========================================
+    $ _skipping = True                # 恢复快进功能
+    $ _rollback = True                # 恢复回滚功能
+    $ _game_menu_screen = "save"      # 恢复菜单功能
+    
     scene bg courtroom
     show zhang satisfied at center
     
