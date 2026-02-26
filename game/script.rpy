@@ -389,8 +389,8 @@ label start:
     $ _game_menu_screen = "save"      # 恢复菜单功能
     
     # 系统提示
-    me "[系统] 脸谱已复原。"
-    me "[系统] 正式进入第一幕……"
+    me "「系统」脸谱已复原。"
+    me "「系统」正式进入第一幕……"
     
     # 此处为序章结尾
     return
@@ -415,28 +415,28 @@ label act1_hong_mansion:
     
     # 主角的选择
     menu:
-        "　(A) [卑微叩首] 连忙跪地道歉":
+        "　(A) 「卑微叩首」连忙跪地道歉":
             $ update_ooc(-10)
             me "对……对不起！我知道错了！"
             me "请您饶恕我这一次……"
             hong "哼。算你有眼力见。"
             jump scene_2_messenger_montage
         
-        "　(B) [挺直腰板，危险] 抬起头，与他对视":
+        "　(B) 「挺直腰板，危险」抬起头，与他对视":
             $ update_ooc(25)
             me "我……我没有做错什么！"
             hong "你说什么呢？你敢对我顶嘴？"
             
             # B的二次选择
             menu:
-                "　(B1) [继续争辩] 毫不退缩地辩论":
+                "　(B1) 「继续争辩」毫不退缩地辩论":
                     $ update_ooc(75)
                     me "就是这样！我要说出来！"
                     me "你不能这样对……"
                     hong "你找死！"
                     jump game_over
                 
-                "　(B2) [紧急求饶] 意识到危险，立即低眉顺眼":
+                "　(B2) 「紧急求饶」意识到危险，立即低眉顺眼":
                     $ update_ooc(-10)
                     me "我……我说错了，对不起……"
                     hong "哼，这样才对。"
@@ -491,7 +491,7 @@ label scene_2_messenger_montage:
     scene bg hong_study_1 with dissolve
     
     # 画外音：快速脚步声
-    play sound "audio/footsteps_rushed.ogg"
+    # play sound "audio/footsteps_rushed.ogg"
     
     servant_a "大……大人！不好了！"
     servant_a "那个女人……那个兰中玉……她……她反抗了！"
@@ -507,7 +507,7 @@ label scene_2_messenger_montage:
     scene bg hong_study_2 with Dissolve(0.2)
     
     # 快速的脚步声和门撞击音
-    play sound "audio/footsteps_faster.ogg"
+    # play sound "audio/footsteps_faster.ogg"
     
     servant_b "大人！情况更糟了！"
     servant_b "那女人跑到后花园去了！我们想控制住她，她……她挠伤了我三个人！"
@@ -523,7 +523,7 @@ label scene_2_messenger_montage:
     scene bg hong_study_3 with hpunch
     
     # 狂乱的脚步和喘息
-    play sound "audio/panic_breathing.ogg"
+    # play sound "audio/panic_breathing.ogg"
     
     servant_c "大……大人！她……她逃出府了！！！"
     servant_c "就在刚才，她趁我们不注意，从侧门冲了出去！"
@@ -539,7 +539,7 @@ label scene_2_messenger_montage:
     scene bg hong_study_4 with vpunch
     
     # 拍案惊堂木的音效
-    play sound "audio/table_flip.ogg"
+    # play sound "audio/table_flip.ogg"
     
     # 显示暴怒的洪彦龙
     show hong furious at center
@@ -567,7 +567,7 @@ label scene_2_messenger_montage:
     scene bg hong_study_5 with dissolve
     
     # 剧院般的沉寂，只有拉风箱的声音
-    play sound "audio/deep_breath.ogg"
+    # play sound "audio/deep_breath.ogg"
     
     # 最后一个仆人的瑟瑟发抖
     servant_d "大……大人……我们……我们该怎么办啊……"
@@ -578,7 +578,7 @@ label scene_2_messenger_montage:
     show me confident at center
     
     # 淡入背景音乐：沉着、智慧的主题
-    play music "audio/strategist_theme.ogg" loop
+    # play music "audio/strategist_theme.ogg" loop
     
     # 舞台中心：主角献计的关键时刻
     me "大人的遭遇，我已经听明白了。"
@@ -744,7 +744,7 @@ label scene_5_5_rescue:
     scene bg night_street
     
     # 播放紧张的背景音乐（心跳鼓点）
-    play music "audio/heartbeat_tense.ogg" loop
+    # play music "audio/heartbeat_tense.ogg" loop
     
     # 主角内心独白
     me "夜色已深。洪府的灯火都已熄灭，但四处都有家丁在巡逻。"
@@ -900,7 +900,7 @@ label scene_5_5_stealth_success:
     scene bg hong_study_night
     
     # 播放柔和的背景音乐
-    play music "audio/quiet_night.ogg" loop
+    # play music "audio/quiet_night.ogg" loop
     
     # 出现兰中玉，穿着粗布衣服，神情黯淡
     show lan sad at center
@@ -982,11 +982,11 @@ label act2_night_stealth:
     
     # 主角的选择
     menu:
-        "　(A) [压低身形，贴墙潜行] 悄悄避开家丁":
+        "　(A) 「压低身形，贴墙潜行」悄悄避开家丁":
             # OOC 不变，进入潜行小游戏
             jump stealth_minigame
         
-        "　(B) [大摇大摆前行] 反正我是师爷":
+        "　(B) 「大摇大摆前行」反正我是师爷":
             $ update_ooc(30)
             if ooc_value >= 70:
                 # OOC 过高，直接暴露
@@ -1012,13 +1012,13 @@ label stealth_minigame:
     me "找到一条空隙……精确地绘制出这条逃脱的路线……"
     
     menu:
-        "　[路线正确] 成功避开巡逻到达县衙":
+        "　「路线正确」成功避开巡逻到达县衙":
             $ update_ooc(-15)
             me "完美！我避开了所有的巡逻队。"
             me "前面就是县衙的后门了。"
             jump zhang_study_confession
         
-        "　[走错断开] 惊动家丁":
+        "　「走错断开」惊动家丁":
             $ update_ooc(30)
             if ooc_value >= 100:
                 # OOC 达到 100，直接失败
@@ -1033,7 +1033,7 @@ label stealth_minigame:
                 me "不行，我得重新计划路线……"
                 jump stealth_minigame
         
-        "　[一键开挂 (Skip)]":
+        "　「一键开挂 (Skip)」":
             $ update_ooc(-50)
             $ cheat_count += 1
             me "我仿佛分裂成了两个世界……"
@@ -1231,7 +1231,7 @@ label act3_courtroom:
     scene bg courtroom with dissolve
     
     # 背景音乐：庄严的公堂主题
-    play music "audio/courtroom_theme.ogg" loop
+    # play music "audio/courtroom_theme.ogg" loop
     
     # 三人登场：洪彦龙（紧张）、张清（沉着）、贾斯文（主角，准备应战）
     show hong nervous at left
@@ -1370,25 +1370,25 @@ label scene_6_dwrg_trial:
     # ========================================
     # QTE 循环：轮流进行多轮审问
     # ========================================
+
+label dwrg_round_begin:
+    $ dwrg_attempt_count += 1
     
-    label dwrg_round_begin:
-        $ dwrg_attempt_count += 1
-        
-        if dwrg_attempt_count == 1:
-            zhang "第一个问题：洪彦龙给了你多少好处？" with vpunch
-        elif dwrg_attempt_count == 2:
-            zhang "那么，第二个问题：他是何时强迫你的？" with vpunch
-        else:
-            zhang "证据呢？你有什么证据？" with vpunch
-        
-        # 调用 dwrg_trial screen 等待玩家输入
-        $ dwrg_result_raw = renpy.call_screen("dwrg_trial", round_num=dwrg_attempt_count)
-        
-        # ========== 处理玩家的选择 ==========
-        
-        if dwrg_result_raw == "attempt_hit":
-            # 玩家点击了"拍案"，检查时机是否正确（指针在绿色区）
-            if 0.3 <= dwrg_pointer_pos <= 0.7:
+    if dwrg_attempt_count == 1:
+        zhang "第一个问题：洪彦龙给了你多少好处？" with vpunch
+    elif dwrg_attempt_count == 2:
+        zhang "那么，第二个问题：他是何时强迫你的？" with vpunch
+    else:
+        zhang "证据呢？你有什么证据？" with vpunch
+    
+    # 调用 dwrg_trial screen 等待玩家输入
+    $ dwrg_result_raw = renpy.call_screen("dwrg_trial", round_num=dwrg_attempt_count)
+    
+    # ========== 处理玩家的选择 ==========
+    
+    if dwrg_result_raw == "attempt_hit":
+        # 玩家点击了"拍案"，检查时机是否正确（指针在绿色区）
+        if 0.3 <= dwrg_pointer_pos <= 0.7:
                 # ========== 完美命中！==========
                 $ update_ooc(-15)
                 
@@ -1595,13 +1595,6 @@ label act3_courtroom_success:
     
     pause 1.0
     
-    jump act3_ending
-
-# 第三幕结尾
-    scene bg courtroom
-    show zhang neutral at center
-    me "经过这一次的磨难，我似乎更理解了这个世界……"
-    me "脸谱在逐渐复原，人生的故事也在继续……"
     jump epilogue
 
 # 尾声：根据 OOC 值选择结局
@@ -1760,10 +1753,10 @@ label game_over_ooc:
     return
 
 ################################################################################
-## Game Over 结局：露馅被斩
+## Game Over 结局：露馅被斩（法庭败露）
 ################################################################################
 
-label game_over_ooc:
+label game_over_exposed_final:
     """
     OOC 达到 100 时触发的死亡结局
     极其震撼的法庭崩溃与斩首场景
