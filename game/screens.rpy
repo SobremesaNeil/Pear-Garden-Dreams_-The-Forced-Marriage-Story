@@ -1801,6 +1801,11 @@ screen ooc_hud():
     
     # 底部说明文本（显示当前状态的含义）
     text "维持反派人设 | OOC 越低越安全" xpos 30 ypos 280 size 10 color "#AAAAAA" font "fonts/LiberationMono-Regular.ttf"
+    
+    # ========================================
+    # OOC 死亡监听者：当 OOC >= 100 时立即触发游戏结束
+    # ========================================
+    timer 0.1 action If(ooc_value >= 100, Jump("game_over_ooc")) repeat True
 ################################################################################
 ## 潜行小游戏 Screen
 ################################################################################
@@ -2049,18 +2054,23 @@ screen dwrg_trial(round_num=1):
             action Return("attempt_hit")
             keysym "space"
         
-        # 一键开挂按钮
-        textbutton "【一键开挂】\n巧舌如簧之力 (Ctrl)":
+        # 一键开挂按钮 - 根据使用次数动态显示不同文本和颜色
+        textbutton ("[一键开挂]\\n巧舌如簧之力 (Ctrl)" if dwrg_auto_hit_uses < 3 else "[开挂已禁用]\\n力量已耗尽"):
             xalign 0.5
             xsize 320
             ysize 70
             text_size 16
-            text_color "#FF6B6B"
-            text_hover_color "#FF0000"
+            text_color ("#FF6B6B" if dwrg_auto_hit_uses < 3 else "#666666")
+            text_hover_color ("#FF0000" if dwrg_auto_hit_uses < 3 else "#666666")
             background Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
             hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
-            action Return("cheat")
-            keysym "lctrl"
+            action (If(dwrg_auto_hit_uses < 3,
+                      [SetVariable("dwrg_auto_hit_uses", dwrg_auto_hit_uses + 1),
+                       Return("cheat_auto_hit")],
+                      [SetVariable("dwrg_auto_hit_uses", 99),  # 惩罚：超限则锁定
+                       Return("cheat_exceed")]))
+            keysym "lctrl" if dwrg_auto_hit_uses < 3 else None
+            sensitive dwrg_auto_hit_uses < 4  # 超过 3 次后禁用按钮
     
     # ========================================
     # 事件计时器：不断更新指针位置与剩余时间

@@ -72,6 +72,10 @@ define servant_d = Character("家丁丁", color="#696969")
 # 特效定义：闪白转场（用于精神暴击时刻）
 define flash = Fade(0.1, 0.0, 0.5, color="#fff")
 
+# 音效定义：值不帜打击感
+define sfx_gavel = "audio/gavel.mp3"
+define sfx_gong = "audio/gong.mp3"
+
 ################################################################################
 ## 核心游戏变量
 ################################################################################
@@ -90,6 +94,7 @@ default dwrg_time_remaining = 5.0   # 剩余时间
 default dwrg_pointer_pos = 0.0      # 指针位置（0.0-1.0，左到右）
 default dwrg_success_threshold = (0.3, 0.7)  # 绿色安全区范围（30%-70%）
 default dwrg_attempt_count = 0      # QTE 尝试次数
+default dwrg_auto_hit_uses = 0      # DWRG 一键开挂的使用次数（限额 3 次）
 
 ################################################################################
 ## 初始化三大小游戏系统
@@ -164,6 +169,12 @@ init python:
 label start:
     
     # ========================================
+    # 全局背景音乐：主题曲
+    # ========================================
+    # 在游戏起点播放主题音乐，并持续循环至游戏结束
+    play music "audio/main_theme.mp3" fadein 2.0
+    
+    # ========================================
     # 序章：破败小屋的光影演出
     # ========================================
     # 场景设置：初始背景为普通光线的破败小屋
@@ -174,11 +185,22 @@ label start:
     
     me "小莲，我给你带来了白面窝头。"
     
+    # ========================================
+    # 道具特写 1：温情与辛酸（白面窝头）
+    # ========================================
+    # 在阳光下悬浮展示的窝头，象征主角对妹妹的关切
+    show prop_bun at truecenter with dissolve
+    
+    pause 1.5
+    
     me "虽然不多，但这是我能找到的最好的。"
     
     lian "咳咳……谢谢你……"
     
     lian "你为我做了这么多……我真是……"
+    
+    # 窝头的任务已完成，收起特写
+    hide prop_bun with dissolve
     
     # ========================================
     # 光影转折点：戏剧高潮
@@ -190,6 +212,15 @@ label start:
     # 切换背景：普通小屋 → 阳光照亮的小屋
     scene bg broken_cottage_sun with dissolve
     
+    # ========================================
+    # 道具特写 2：惊瞳与刺痛（带血手帕）
+    # ========================================
+    # 极其短促的过渡（0.2秒）模拟主角视觉上的冲击与心头一震
+    show prop_handkerchief at truecenter with Dissolve(0.2)
+    with hpunch  # 配合左右剧烈晃动，强化惊骇感
+    
+    pause 0.5
+    
     # 时光流逝的旁白，强化光线与现实苦难的对比
     me "刺眼的阳光忽然透过窗户倾泻进来，照在她苍白的脸庞上。"
     
@@ -200,6 +231,9 @@ label start:
     
     # 血手帕被阳光照亮，产生刺目的视觉对比
     me "她用手绢捂住嘴，手绢上的血迹在阳光下闪闪发光……"
+    
+    # 收起手帕特写，回到标准画面
+    hide prop_handkerchief with dissolve
     
     me "那是一种讽刺的美：希望之光洒在绝望之上。"
     
@@ -233,8 +267,20 @@ label start:
     
     me "血滴在了这本古籍上……"
     
+    # ========================================
+    # 道具特写 3：命运转折（线状血书）
+    # ========================================
+    # 这是穿越前的终极悬念，使用深邃缓慢的过渡（1.5秒）
+    show prop_book at truecenter with Dissolve(1.5)
+    
+    # 定格在书上 1.5-2 秒，让玩家感受到命运转折的沉重感
+    pause 2.0
+    
     # 镜头 4：主角环顾四周，逐渐清醒
     scene bg backstage_4 with Dissolve(0.2)
+    
+    # 血书随着背景切换而隐没，过渡到穿越后的陌生世界
+    hide prop_book with dissolve
     
     me "等等……这里是……？"
     
@@ -280,6 +326,31 @@ label start:
         $ update_ooc(-20)
         me "我深吸一口气，开始仔细地拼合每一个碎片……"
         me "一点一点地，脸谱在我手中慢慢复原了……"
+        
+        # ========================================
+        # 高光时刻：入戏与灵魂夺舍
+        # ========================================
+        # 死寂与悬念：最后一笔油彩的铺垫
+        pause 1.0
+        me "我拿起画笔，勾勒下眼角最后一抹油彩……"
+        
+        pause 1.5
+        
+        # 铜镜骤现：化完妆的贾斯文极其缓慢、深邃地浮现
+        # 模拟镜子里倒影的诡异感
+        show jia_siwen at truecenter with Dissolve(1.5)
+        with vpunch  # 灵魂被角色吞噬的战栗感
+        
+        pause 1.0
+        
+        # 文本咬合：极其有力量的定场台词
+        me "镜子里的人，不再是懦弱的沈怀瑾。"
+        me "而是相府里满腹坏水、只手遮天的丑角师爷——贾斯文。"
+        
+        pause 1.5
+        
+        # 转场离去：制造极其压抑的对视后，切黑
+        scene black with Dissolve(1.0)
     
     elif puzzle_result == "cheat":
         # ========== 一键开挂 ==========
@@ -287,6 +358,19 @@ label start:
         $ cheat_count += 1
         me "算了，我直接跳过这个步骤……"
         me "以某种不可思议的力量，碎片在瞬间复原了。"
+        
+        # 开挂分支也加入化身时刻，但更显突兀
+        pause 0.8
+        me "我拿起镜子……"
+        
+        pause 1.0
+        show jia_siwen at truecenter with flash  # 用flash制造闪电式入戏
+        
+        pause 0.8
+        me "镜子里的人已经不是我。那是贾斯文。"
+        
+        pause 1.0
+        scene black with Dissolve(1.0)
     
     # 系统提示
     me "[系统] 脸谱已复原。"
@@ -1126,7 +1210,7 @@ label act3_courtroom:
     # ========================================
     
     # 拍惊堂木音效和震屏效果
-    play sound "audio/gavel_bang.ogg"
+    play sound sfx_gavel
     show text "【惊堂木】" at truecenter with vpunch
     pause 0.3
     hide text
@@ -1236,8 +1320,9 @@ label scene_6_dwrg_trial:
                 # ========== 完美命中！==========
                 $ update_ooc(-15)
                 
-                play sound "audio/gavel_bang.ogg"
+                play sound sfx_gavel
                 scene bg courtroom with flash
+                play sound sfx_gong  # 绝杀时刻：京剧鼓声
                 show text "【精确压制！】" at truecenter with vpunch
                 pause 0.5
                 hide text
@@ -1308,6 +1393,7 @@ label scene_6_dwrg_trial:
             me "我……我的话还没说完……"
             
             show zhang angry at center
+            play sound sfx_gavel
             zhang "大胆！你在本官面前还要支吾其辞？" with vpunch
             
             # 检查 OOC 是否达到致命值
@@ -1318,8 +1404,60 @@ label scene_6_dwrg_trial:
             pause 1.0
             jump dwrg_round_begin
         
+        elif dwrg_result_raw == "cheat_auto_hit":
+            # ========== 使用一键开挂（前 3 次，合法） ==========
+            $ update_ooc(-50)
+            $ cheat_count += 1
+            
+            show text "【系统骇入：完美反杀！】" at truecenter with flash
+            play sound sfx_gong  # 绝杀时刻音效
+            pause 0.5
+            hide text
+            
+            show hong shocked at left
+            
+            if dwrg_attempt_count == 1:
+                me "（我……仿佛获得了超凡的说辞能力！）"
+                me "大人！他给了我五十两银子，还威胁要杀我全家！"
+            else:
+                me "（真是……天赐的智慧与口才……）"
+                me "大人，他那天拔剑对我，还当众发誓要杀我全家！"
+                me "这是有目共睹的罪行！"
+            
+            hong "我……我……"
+            
+            show zhang satisfied at center
+            zhang "好了！本官已经听够了。证据确凿，毋庸置疑。" with flash
+            
+            # 直接跳到成功
+            jump act3_courtroom_success
+        
+        elif dwrg_result_raw == "cheat_exceed":
+            # ========== 开挂超限（第 4 次及以上，触发惩罚） ==========
+            # OOC 强制锁定为 99（极度危险）
+            $ ooc_value = 99
+            
+            show text "【禁止骇入！系统反制！】" at truecenter with hpunch
+            pause 0.5
+            hide text
+            
+            me "我……我突然感到一阵虚弱……仿佛所有的力量都被夺走了……"
+            
+            show zhang contemptuous at center
+            zhang "你这小子，竟敢在本官面前玩花样？！" with vpunch
+            
+            # OOC 达到 99，触发即将 Game Over 的恐怖感
+            show text "【警告】您的人设即将崩坏！下一次失误将导致 Game Over！" at truecenter with flash
+            pause 1.0
+            hide text
+            
+            # 允许继续但处于极端危险状态
+            me "不……不是……我真的……"
+            pause 1.0
+            jump dwrg_round_begin
+        
         elif dwrg_result_raw == "cheat":
-            # ========== 使用一键开挂 ==========
+            # ========== 保留原有逻辑作为后备 ==========
             $ update_ooc(-50)
             $ cheat_count += 1
             
@@ -1524,4 +1662,96 @@ label game_over_ooc:
     hide text
     
     # 返回标题菜单
+    return
+
+################################################################################
+## Game Over 结局：露馅被斩
+################################################################################
+
+label game_over_ooc:
+    """
+    OOC 达到 100 时触发的死亡结局
+    极其震撼的法庭崩溃与斩首场景
+    """
+    
+    # 隐藏所有角色和屏幕元素
+    hide screen ooc_hud
+    hide lian
+    hide hong
+    hide zhang
+    hide me
+    hide jia_siwen
+    
+    # 停止背景音乐，1 秒淡出
+    stop music fadeout 1.0
+    
+    # ========================================
+    # 1. 画面瞬间切红 + 极度震屏
+    # ========================================
+    scene solid "#8B0000" with vpunch
+    
+    pause 0.5
+    
+    # 播放惊堂木音效（追加多次以强化绝望感）
+    play sound sfx_gavel
+    pause 0.2
+    play sound sfx_gavel
+    pause 0.2
+    play sound sfx_gavel
+    
+    pause 0.5
+    
+    # ========================================
+    # 2. 知县的震怒台词（大字赤红）
+    # ========================================
+    # 使用 show text 显示知县的绝对威权台词
+    show text "{size=48}{color=#FFFFFF}大胆狂徒！{/color}{/size}" at truecenter:
+        pause 1.5
+    hide text
+    
+    pause 0.3
+    
+    show text "{size=40}{color=#FF6B6B}满口胡言，竟敢咆哮公堂！{/color}{/size}" at truecenter:
+        pause 2.0
+    hide text
+    
+    pause 0.3
+    
+    show text "{size=40}{color=#FF0000}左右，给我拉下去斩了！{/color}{/size}" at truecenter:
+        pause 2.0
+    hide text
+    
+    pause 0.8
+    
+    # ========================================
+    # 3. 主角的绝望内心独白
+    # ========================================
+    scene black with Fade(0.5, 0.2, 0.5)
+    
+    pause 0.5
+    
+    me "我……终究没能演好这场戏……"
+    
+    pause 1.0
+    
+    me "这个角色吞没了我。"
+    
+    me "而我，也逃脱不了宿命的绞刑架。"
+    
+    pause 1.5
+    
+    # ========================================
+    # 4. 画面切黑+结局文字
+    # ========================================
+    scene black with fade
+    
+    pause 1.0
+    
+    show text "{size=52}{color=#FFFFFF}Game Over{/color}{/size}\n{size=36}{color=#FF6B6B}露馅被斬{/color}{/size}" at truecenter with dissolve:
+        pause 4.0
+    hide text
+    
+    pause 1.0
+    
+    # 返回主菜单
     return
