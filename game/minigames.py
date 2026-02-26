@@ -1,10 +1,17 @@
+id = 1  # 可根据碎片数量修改，
+# 碎片目标坐标（X/Y，根据你的游戏界面调整）
+target_x = 200  # 碎片要对齐的目标X坐标
+target_y = 150  # 碎片要对齐的目标Y坐标
+tolerance = 10
 fragment_configs = [
     (id, "images/path.png", target_x, target_y, tolerance),
     # 需要替换为实际的碎片图片路径
-]fragment_configs = [
+]
+fragment_configs = [
     (id, "images/path.png", target_x, target_y, tolerance),
     # 需要替换为实际的碎片图片路径
-]"""
+]
+"""
 《梨园戏梦》三大交互小游戏核心逻辑
 包含：脸谱复原、伪造婚书、深夜潜行
 """

@@ -314,7 +314,7 @@ screen nine_puzzle_path():
                     add Circle(20, color="#4169E1"):
                         xpos x - 10
                         ypos y - 10
-                    text "0\n(起)" xpos x - 25 ypos y + 25 size 12 color="#4169E1"
+                    text "0\n(起)" xpos x - 25 ypos y + 25 size 12 color "#4169E1"
                 elif is_current:
                     # 当前节点：闪烁光芒
                     add Circle(18, color="#00FF00"):
@@ -523,8 +523,7 @@ init python:
             
             # 修复：直接使用绝对坐标绘制，无需计算 adjusted 偏移
             if self.dash_pattern:
-                self._draw_dashed_line(canvas, color_obj, self.start_pos, self.end_pos, 
-                                      self.width, self.dash_pattern)
+                self._draw_dashed_line(canvas, color_obj, self.start_pos, self.end_pos, self.width, self.dash_pattern)
             else:
                 canvas.line(color_obj, self.start_pos, self.end_pos, self.width)
             
@@ -566,8 +565,7 @@ init python:
                 
                 # 奇数索引是空白，偶数索引才绘制线段
                 if pattern_idx % 2 == 0:
-                    canvas.line(color, (seg_start_x, seg_start_y), 
-                               (seg_end_x, seg_end_y), width)
+                    canvas.line(color, (seg_start_x, seg_start_y), (seg_end_x, seg_end_y), width)
                 
                 current_pos = next_pos
                 pattern_idx += 1

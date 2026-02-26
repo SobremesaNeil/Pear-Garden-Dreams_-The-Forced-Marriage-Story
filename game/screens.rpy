@@ -1675,25 +1675,31 @@ screen qte_bar(time_limit=3.0):
             xsize 400
             ysize 30
         
-        hbox:
-            spacing 50
-            xalign 0.5
+        frame:
+            # 你的半透明黑色背景（原有的 #000000AA）
             background Solid("#000000AA")
+            # 取消 frame 默认的灰色边框（避免影响美观）
+            style "empty_frame"
+            # 保留你原有的 padding 样式
             padding (20, 10)
             
-            # 按钮1：点击校准
-            textbutton "[点击校准]":
-                xsize 150
-                text_idle_color "#FFFFFF"
-                text_hover_color "#FFD700"
-                action Return("success")
-            
-            # 按钮2：一键开挂
-            textbutton "[一键开挂]":
-                xsize 150
-                text_idle_color "#FFFFFF"
-                text_hover_color "#FFD700"
-                action Return("cheat")
+            hbox:
+                spacing 50
+                xalign 0.5
+                
+                # 按钮1：点击校准
+                textbutton "[点击校准]":
+                    xsize 150
+                    text_idle_color "#FFFFFF"
+                    text_hover_color "#FFD700"
+                    action Return("success")
+                
+                # 按钮2：一键开挂
+                textbutton "[一键开挂]":
+                    xsize 150
+                    text_idle_color "#FFFFFF"
+                    text_hover_color "#FFD700"
+                    action Return("cheat")
     
     # 使用 timer 递减时间，时间结束时返回 "fail"
     timer time_limit action Return("fail")
@@ -1738,11 +1744,10 @@ screen ooc_hud():
             text "【安全】反派人设稳定" size 12 color "#6BCB77"
     
     # 脸谱图片显示区域（根据 OOC 值显示不同脸谱）
-    add Frame("gui/ooc_frame.png", (20, 20, 20, 20), tile=False):
+    add Frame("gui/ooc_frame.png", (20, 20, 20, 20), tile = False):
         xpos 30
         ypos 100
         xysize (120, 140)
-        background None
     
     # 条件判断：根据 OOC 值显示不同的脸谱图片和特效
     if ooc_value >= 71:
@@ -1876,9 +1881,14 @@ screen stealth_minigame():
                     text_size 18
                     text_color "#FFFFFF"
                     text_hover_color "#FFD700"
-                    background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "left" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+                    # background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "left" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
                     hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
                     action Return("left")
+
+                    if stealth_target_direction == "left":
+                        background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+                    else:
+                        background Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
                 
                 text "墙角" size 12 color "#AAAAAA" xalign 0.5
             
@@ -1893,9 +1903,14 @@ screen stealth_minigame():
                     text_size 18
                     text_color "#FFFFFF"
                     text_hover_color "#FFD700"
-                    background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "forward" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+                    # background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "forward" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
                     hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
                     action Return("forward")
+
+                    if stealth_target_direction == "forward":
+                        background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+                    else:
+                        background Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
                 
                 text "屋顶" size 12 color "#AAAAAA" xalign 0.5
             
@@ -1910,9 +1925,13 @@ screen stealth_minigame():
                     text_size 18
                     text_color "#FFFFFF"
                     text_hover_color "#FFD700"
-                    background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "right" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
+                    # background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10)) if stealth_target_direction == "right" else Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
                     hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
                     action Return("right")
+                    if stealth_target_direction == "right":
+                        background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
+                    else:
+                        background Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
                 
                 text "廊道" size 12 color "#AAAAAA" xalign 0.5
         
@@ -2064,13 +2083,20 @@ screen dwrg_trial(round_num=1):
             text_hover_color ("#FF0000" if dwrg_auto_hit_uses < 3 else "#666666")
             background Frame("gui/button/choice_idle_background.png", (10, 10, 10, 10))
             hover_background Frame("gui/button/choice_hover_background.png", (10, 10, 10, 10))
-            action (If(dwrg_auto_hit_uses < 3,
-                      [SetVariable("dwrg_auto_hit_uses", dwrg_auto_hit_uses + 1),
-                       Return("cheat_auto_hit")],
-                      [SetVariable("dwrg_auto_hit_uses", 99),  # 惩罚：超限则锁定
-                       Return("cheat_exceed")]))
-            keysym "lctrl" if dwrg_auto_hit_uses < 3 else None
-            sensitive dwrg_auto_hit_uses < 4  # 超过 3 次后禁用按钮
+            action (
+                If(
+                    dwrg_auto_hit_uses < 3,
+                    [SetVariable("dwrg_auto_hit_uses", dwrg_auto_hit_uses + 1), Return("cheat_auto_hit")],
+                    [SetVariable("dwrg_auto_hit_uses", 99), Return("cheat_exceed")]
+                )
+            )
+            sensitive dwrg_auto_hit_uses < 4
+
+            # 关键修复：把keysym拆分为if块（Ren'Py 100%兼容）
+            if dwrg_auto_hit_uses < 3:
+                keysym "lctrl"
+            else:
+                keysym None
     
     # ========================================
     # 事件计时器：不断更新指针位置与剩余时间
@@ -2083,12 +2109,10 @@ screen dwrg_trial(round_num=1):
         SetScreenVariable("dwrg_time_remaining", max(0, 5.0 - (time.time() % 5.0))),
         
         # 当指针进入安全区 (0.3-0.7) 且状态锁为 False 时，播放提示音
-        If(0.3 <= (time.time() % 6.0) / 6.0 <= 0.7 and not in_safe_zone,
-           [Play("sound", "audio/beep.ogg"), SetScreenVariable("in_safe_zone", True)]),
+        If(0.3 <= (time.time() % 6.0) / 6.0 <= 0.7 and not in_safe_zone,[Play("sound", "audio/beep.ogg"), SetScreenVariable("in_safe_zone", True)]),
            
         # 当指针离开安全区时，如果状态锁为 True，则重置状态锁
-        If(((time.time() % 6.0) / 6.0 < 0.3 or (time.time() % 6.0) / 6.0 > 0.7) and in_safe_zone,
-           SetScreenVariable("in_safe_zone", False))
+        If(((time.time() % 6.0) / 6.0 < 0.3 or (time.time() % 6.0) / 6.0 > 0.7) and in_safe_zone,SetScreenVariable("in_safe_zone", False))
     ] repeat True
     
     # 超时自动返回 Miss（5 秒后）
