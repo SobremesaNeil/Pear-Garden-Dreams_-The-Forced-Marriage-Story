@@ -69,6 +69,9 @@ define servant_b = Character("家丁乙", color="#696969")
 define servant_c = Character("家丁丙", color="#696969")
 define servant_d = Character("家丁丁", color="#696969")
 
+# 特效定义：闪白转场（用于精神暴击时刻）
+define flash = Fade(0.1, 0.0, 0.5, color="#fff")
+
 ################################################################################
 ## 核心游戏变量
 ################################################################################
@@ -894,7 +897,11 @@ label stealth_minigame:
 # 主角在书房面见知县
 label zhang_study_confession:
     
-    scene bg zhang_study with fade
+    # ========================
+    # 1. 破冰定场（全景1）
+    # ========================
+    # 主角刚潜入书房，知县呵斥或询问身份
+    scene bg zhang_study_1 with dissolve
     
     show zhang neutral at center
     
@@ -902,26 +909,107 @@ label zhang_study_confession:
     
     me "大人……是我。"
     
-    me "我冒死来见您，是为了自首。"
+    me "我冒死来见您，不是为了投案……"
     
-    zhang "自首？你是何人，为何要自首？"
+    zhang "那你是为了什么？"
     
-    me "我叫贾斯文，是洪彦龙的师爷。"
+    me "我是来送您一条破局之法的。"
     
-    me "我的身份是假的。我被强行卷入了一桩婚姻欺诈案。"
+    zhang "破局？"
     
-    me "兰中玉的婚书是我伪造的，整个事件的始末都是……"
+    zhang "贾斯文……你有胆子背叛洪彦龙？"
     
-    # 主角开始表演，飙演技自首
-    me "我已经认清了自己的罪恶。我希望以诚恳的态度，"
+    me "我本不想的，大人。但我已经看清了洪彦龙的真面目。"
     
-    me "换取您的怜悯和法律的制裁。"
+    me "他将兰中玉囚禁在府中，意图私吞彩礼与聘金。"
     
-    zhang "好。你的勇气值得表扬。但具体的细节，"
+    me "当年那份婚书，正是他强迫我伪造的。"
     
-    zhang "我们在公堂上再仔细审理。"
+    # ========================
+    # 2. 交锋与态度松动（全景2）
+    # ========================
+    # 知县开始认真倾听，心理距离拉近
+    scene bg zhang_study_2 with Dissolve(0.5)
     
-    jump act3_courtroom
+    show zhang thoughtful at center
+    
+    zhang "……继续说。"
+    
+    zhang "你这样背叛他，就不怕死吗？"
+    
+    me "大人，死有很多种。"
+    
+    me "有的死法是被刀剑斩杀，有的死法是良心每日谴责。"
+    
+    me "我已经决定，用一种有意义的死法——"
+    
+    me "揭露真相，还兰中玉自由，还大人您一个清廉的名声。"
+    
+    zhang "有趣。说说你的计划。"
+    
+    me "明天，洪彦龙会拿出一份假的婚书，谎称兰中玉已同意这段婚姻。"
+    
+    me "他以为这份伪造的文书能骗过您的法眼。"
+    
+    me "但……如果大人您能识破这份文书的破绽，"
+    
+    me "在公堂上着他个措手不及……"
+    
+    # ========================
+    # 3. 终极密谋（案卷特写）
+    # ========================
+    # 主角抛出底牌，两人定下公堂连环计
+    scene bg zhang_study_closeup with Dissolve(1.5)
+    
+    show zhang contemptuous at center
+    
+    zhang "你是说……"
+    
+    me "是的，大人。那份婚书，是用【立此为证】这样的粗俗商人用语。"
+    
+    me "一个懂文化的知县，只需一眼就能看出破绽。"
+    
+    me "而我，可以在公堂上指认这份书是出自我的笔迹——"
+    
+    me "再加上兰中玉本人的证词，三层铁证，无懈可击。"
+    
+    zhang "……聪慧的小子。"
+    
+    zhang "你已经把所有的赌注都押在我的诚廉之上了。"
+    
+    zhang "如果我也是贪官，现在就该杀人灭口。"
+    
+    me "是的，大人。我甘愿冒这个险。"
+    
+    zhang "很好。那明天公堂上，就按你的计划来。"
+    
+    zhang "兰中玉会被释放，洪彦龙会受到应有的惩罚。"
+    
+    # ========================
+    # 4. 大局已定（全景3）
+    # ========================
+    # 镜头拉回全景，谈判结束，契约已成
+    scene bg zhang_study_3 with dissolve
+    
+    show zhang satisfied at center
+    
+    zhang "现在，你可以离开了。"
+    
+    zhang "去做你要做的事。解救那位女子。"
+    
+    me "是，大人。我这就启程。"
+    
+    zhang "等等。"
+    
+    me "……是？"
+    
+    zhang "后会有期，贾斯文。"
+    
+    zhang "无论你的结局是生还是死，我都会信守今晚的承诺。"
+    
+    me "谢大人。"
+    
+    jump scene_5_5_rescue
 
 # 游戏结束：身份暴露
 label game_over_exposed:
@@ -993,7 +1081,7 @@ label act3_courtroom:
     $ ooc_checkpoint = ooc_value
     
     # 场景：衙门公堂（庄严肃穆）
-    scene bg courtroom
+    scene bg courtroom with dissolve
     
     # 背景音乐：庄严的公堂主题
     play music "audio/courtroom_theme.ogg" loop
@@ -1016,12 +1104,12 @@ label act3_courtroom:
     # 显示高亮对比：两个关键词句
     show text "{color=#FF6B6B}立此为证{/color}（粗俗商贾用语）\nvs\n{color=#6BCB77}谨立此据{/color}（文人雅言）" at truecenter
     
-    zhang "【立此为证】是粗鲁的商人用语，充满铜臭味。"
-    zhang "而一份郑重其事的婚书，应该用【谨立】、【特立】这样的文人雅言。"
+    zhang "【立此为证】是粗鲁的商人用语，充满铜臭味。" with vpunch
+    zhang "而一份郑重其事的婚书，应该用【谨立】、【特立】这样的文人雅言。" with vpunch
     
     hide text
     
-    zhang "你这样的伪造痕迹，实在太明显了！"
+    zhang "你这样的伪造痕迹，实在太明显了！" with vpunch
     
     # 洪彦龙惊慌失措
     show hong shocked at left
@@ -1043,7 +1131,7 @@ label act3_courtroom:
     pause 0.3
     hide text
     
-    zhang "荒唐！本官要审问的是……贾斯文！"
+    zhang "荒唐！本官要审问的是……贾斯文！" with vpunch
     
     me "……是！"
     
@@ -1058,7 +1146,7 @@ label act3_courtroom:
     # 关键选择菜单：配合知县的审判节奏
     # ========================================
     
-    zhang "贾斯文！这份婚书，真的是你写的吗？还是……洪彦龙强迫你？"
+zhang "贾斯文！这份婚书，真的是你写的吗？还是……洪彦龙强迫你？" with vpunch
     
     menu:
         "　【声泪俱下，甩锅】我……我本不想的！都是洪大人强迫我！":
@@ -1086,7 +1174,7 @@ label act3_courtroom:
             
             # 知县可能认为他过于积极，引起怀疑
             show zhang suspicious at center
-            zhang "嗯？你这小子，倒是急于翻脸啊……"
+            zhang "嗯？你这小子，倒是急于翻脸啊……" with hpunch
             zhang "让我想想，你的动机是什么？"
             
             me "我……我只是想见证正义！"
@@ -1131,11 +1219,11 @@ label scene_6_dwrg_trial:
         $ dwrg_attempt_count += 1
         
         if dwrg_attempt_count == 1:
-            zhang "第一个问题：洪彦龙给了你多少好处？"
+            zhang "第一个问题：洪彦龙给了你多少好处？" with vpunch
         elif dwrg_attempt_count == 2:
-            zhang "那么，第二个问题：他是何时强迫你的？"
+            zhang "那么，第二个问题：他是何时强迫你的？" with vpunch
         else:
-            zhang "证据呢？你有什么证据？"
+            zhang "证据呢？你有什么证据？" with vpunch
         
         # 调用 dwrg_trial screen 等待玩家输入
         $ dwrg_result_raw = renpy.call_screen("dwrg_trial", round_num=dwrg_attempt_count)
@@ -1149,6 +1237,7 @@ label scene_6_dwrg_trial:
                 $ update_ooc(-15)
                 
                 play sound "audio/gavel_bang.ogg"
+                scene bg courtroom with flash
                 show text "【精确压制！】" at truecenter with vpunch
                 pause 0.5
                 hide text
@@ -1171,7 +1260,7 @@ label scene_6_dwrg_trial:
                     
                     # 知县给予严厉制止
                     show zhang confident at center
-                    zhang "从你们两人的言辞反差，本官已经看清楚了！"
+                    zhang "从你们两人的言辞反差，本官已经看清楚了！" with vpunch
                     
                     # 连续两个完美回答，可以直接宣判
                     jump act3_courtroom_success
@@ -1184,7 +1273,7 @@ label scene_6_dwrg_trial:
                 # ========== 时机不对，击中了危险区 ==========
                 $ update_ooc(10)
                 
-                show text "【节奏被破坏！】" at truecenter with flash
+                show text "【节奏被破坏！】" at truecenter with hpunch
                 pause 0.5
                 hide text
                 
@@ -1196,7 +1285,7 @@ label scene_6_dwrg_trial:
                     me "证据？我……哪有什么证据……"
                 
                 show zhang frown at center
-                zhang "吞吞吐吐！看来你在隐瞒什么！"
+                zhang "吞吞吐吐！看来你在隐瞒什么！" with vpunch
                 
                 hong "哈哈！你们瞧瞧，这小子都说不出个所以然来！"
                 
@@ -1212,14 +1301,14 @@ label scene_6_dwrg_trial:
             # ========== 超时，时间耗尽 ==========
             $ update_ooc(10)
             
-            show text "【时间耗尽！】" at truecenter with flash
+            show text "【时间耗尽！】" at truecenter with hpunch
             pause 0.5
             hide text
             
             me "我……我的话还没说完……"
             
             show zhang angry at center
-            zhang "大胆！你在本官面前还要支吾其辞？"
+            zhang "大胆！你在本官面前还要支吾其辞？" with vpunch
             
             # 检查 OOC 是否达到致命值
             $ check_ooc()
@@ -1251,7 +1340,7 @@ label scene_6_dwrg_trial:
             hong "我……我……"
             
             show zhang satisfied at center
-            zhang "好了！本官已经听够了。证据确凿，毋庸置疑。"
+            zhang "好了！本官已经听够了。证据确凿，毋庸置疑。" with flash
             
             # 直接跳到成功
             jump act3_courtroom_success
