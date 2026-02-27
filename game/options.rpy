@@ -50,14 +50,14 @@ define config.has_voice = True
 ## 为了让用户在音效或语音轨道上播放测试音频，请取消对下面一行的注释并设置播放的
 ## 样本声音。
 
-# define config.sample_sound = "sample-sound.ogg"
-# define config.sample_voice = "sample-voice.ogg"
+define config.sample_sound = "sample-sound.ogg"
+define config.sample_voice = "sample-voice.ogg"
 
 
 ## 将以下语句取消注释就可以设置标题界面播放的背景音乐文件。此文件将在整个游戏中
 ## 持续播放，直至音乐停止或其他文件开始播放。
 
-define config.main_menu_music = "audio/main_theme.mp3"
+# define config.main_menu_music = "main_theme.mp3"
 
 ## 转场 ##########################################################################
 ##

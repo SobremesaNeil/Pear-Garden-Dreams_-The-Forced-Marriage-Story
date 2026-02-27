@@ -183,7 +183,8 @@ label start:
     # 全局背景音乐：主题曲
     # ========================================
     # 在游戏起点播放主题音乐，并持续循环至游戏结束
-    play music "audio/main_theme.mp3" fadein 2.0
+    # play music config.main_menu_music fadein 2.0
+    
     
     # ========================================
     # 序章：破败小屋的光影演出
@@ -197,6 +198,12 @@ label start:
         ypos 1
         xanchor 0.5
         yanchor 0.0
+
+    $ renpy.music.set_volume(1.0, channel="music")
+    # stop music
+    queue music "main_theme.mp3"
+    queue music "audio/main_theme.mp3"
+    queue music "game/audio/main_theme.mp3"
     
     me "小莲，我给你带来了白面窝头。"
     
@@ -408,7 +415,8 @@ label start:
     me "「系统」正式进入第一幕……"
     
     # 此处为序章结尾
-    return
+    jump act1_hong_mansion
+    # return
 
 # 第一幕：洪家大宅
 label act1_hong_mansion:

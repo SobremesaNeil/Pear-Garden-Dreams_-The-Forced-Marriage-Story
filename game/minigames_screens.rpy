@@ -131,7 +131,9 @@ screen stroke_writing():
         spacing 10
         
         text "【伪造婚书】在规定时间内按笔画顺序描红「婚」字" size 24 color "#FFD700" xalign 0.5
-        text f"剩余时间：{stroke_tracker.get_remaining_time(renpy.get_time()):.1f} 秒 | 进度：{stroke_tracker.last_ordered_checkpoint + 1}/{len(stroke_tracker.checkpoints)}" size 14 color "#FFFFFF" xalign 0.5
+        # text f"剩余时间：{stroke_tracker.get_remaining_time(renpy.get_time()):.1f} 秒 | 进度：{stroke_tracker.last_ordered_checkpoint + 1}/{len(stroke_tracker.checkpoints)}" size 14 color "#FFFFFF" xalign 0.5
+        # text f"剩余时间：{stroke_tracker.get_remaining_time(renpy.get_realtime()):.1f} 秒 | 进度：{stroke_tracker.last_ordered_checkpoint + 1}/{len(stroke_tracker.checkpoints)}" size 14 color "#FFFFFF" xalign 0.5
+        text f"剩余时间：{stroke_tracker.get_remaining_time(time.time()):.1f} 秒 | 进度：{stroke_tracker.last_ordered_checkpoint + 1}/{len(stroke_tracker.checkpoints)}" size 14 color "#FFFFFF" xalign 0.5
     
     # 绘制区域
     vbox:
