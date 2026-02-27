@@ -1737,10 +1737,10 @@ screen ooc_hud():
         spacing 10
         
         # OOC 标题
-        text "角色状态" size 16 color "#FFFFFF" font "fonts/LiberationMono-Regular.ttf"
+        text "角色状态" size 16 color "#FFFFFF" font "fonts/SourceHanSansLite.ttf"
         
         # OOC 数值显示
-        text "[ooc_value]%" size 24 color "#FFD700" font "fonts/LiberationMono-Bold.ttf"
+        text "[ooc_value]%" size 24 color "#FFD700" font "fonts/SourceHanSansLite.ttf"
         
         # 状态标签（根据 OOC 值动态显示）
         if ooc_value >= 71:
@@ -1751,10 +1751,11 @@ screen ooc_hud():
             text "【安全】反派人设稳定" size 12 color "#6BCB77"
     
     # 脸谱图片显示区域（根据 OOC 值显示不同脸谱）
-    add Frame("gui/ooc_frame.png", (20, 20, 20, 20), tile = False):
-        xpos 30
-        ypos 100
-        xysize (120, 140)
+    # add Frame("gui/ooc_frame.png", (20, 20, 20, 20), tile = False)
+    # :
+    #     xpos = 30
+    #     ypos = 100
+    #     xysize = (120, 140)
     
     # 条件判断：根据 OOC 值显示不同的脸谱图片和特效
     if ooc_value >= 71:
@@ -1773,7 +1774,7 @@ screen ooc_hud():
             alpha 0.1
         
         # 右侧副文本：危险警告
-        text "紧急" xpos 170 ypos 140 size 14 color "#FF0000" font "fonts/LiberationMono-Bold.ttf"
+        text "紧急" xpos 170 ypos 140 size 14 color "#FF0000" font "fonts/SourceHanSansLite.ttf"
     
     elif ooc_value >= 31:
         # ========== 警告区（31-70%）==========
@@ -1791,7 +1792,7 @@ screen ooc_hud():
             alpha 0.08
         
         # 右侧副文本：警告
-        text "注意" xpos 170 ypos 140 size 14 color "#FFFF00" font "fonts/LiberationMono-Bold.ttf"
+        text "注意" xpos 170 ypos 140 size 14 color "#FFFF00" font "fonts/SourceHanSansLite.ttf"
     
     else:
         # ========== 安全区（0-30%）==========
@@ -1809,10 +1810,10 @@ screen ooc_hud():
             alpha 0.05
         
         # 右侧副文本：安全
-        text "安全" xpos 170 ypos 140 size 14 color "#6BCB77" font "fonts/LiberationMono-Bold.ttf"
+        text "安全" xpos 170 ypos 140 size 14 color "#6BCB77" font "fonts/SourceHanSansLite.ttf"
     
     # 底部说明文本（显示当前状态的含义）
-    text "维持反派人设 | OOC 越低越安全" xpos 30 ypos 280 size 10 color "#AAAAAA" font "fonts/LiberationMono-Regular.ttf"
+    text "维持反派人设 | OOC 越低越安全" xpos 30 ypos 280 size 10 color "#AAAAAA" font "fonts/SourceHanSansLite.ttf"
     
     # ========================================
     # OOC 死亡监听者：当 OOC >= 100 时立即触发游戏结束
@@ -1849,7 +1850,7 @@ screen stealth_minigame():
         spacing 30
         
         # ========== 标题和说明 ==========
-        text "潜行小游戏：避开家丁巡逻" size 32 color "#FFD700" xalign 0.5 font "fonts/LiberationMono-Bold.ttf"
+        text "潜行小游戏：避开家丁巡逻" size 32 color "#FFD700" xalign 0.5 font "fonts/SourceHanSansLite.ttf"
         
         text "连续找对 3 个正确方向，即可安全逃脱！" size 18 color "#FFFFFF" xalign 0.5
         
@@ -1859,7 +1860,7 @@ screen stealth_minigame():
             spacing 20
             
             text "已检测步数：" size 16 color "#FFFFFF"
-            text "[stealth_correct_steps] / 3" size 16 color "#FFD700" font "fonts/LiberationMono-Bold.ttf"
+            text "[stealth_correct_steps] / 3" size 16 color "#FFD700" font "fonts/SourceHanSansLite.ttf"
         
         # ========== 当前风险等级提示 ==========
         if stealth_correct_steps == 0:
@@ -2002,7 +2003,7 @@ screen dwrg_trial(round_num=1):
         ypos 80
         spacing 15
         
-        text "【DWRG 节奏审判】第 [round_num] 轮" size 32 color "#FFD700" xalign 0.5 font "fonts/LiberationMono-Bold.ttf"
+        text "【DWRG 节奏审判】第 [round_num] 轮" size 32 color "#FFD700" xalign 0.5 font "fonts/SourceHanSansLite.ttf"
         text "在知县的言辞咄咄逼人时，找到最佳时机「拍案」回击！" size 16 color "#FFFFFF" xalign 0.5
     
     # ========================================
@@ -2014,7 +2015,7 @@ screen dwrg_trial(round_num=1):
         spacing 20
         
         # 大标题：指针移动区
-        text "指针校准条" size 18 color "#FFFF00" xalign 0.5 font "fonts/LiberationMono-Bold.ttf"
+        text "指针校准条" size 18 color "#FFFF00" xalign 0.5 font "fonts/SourceHanSansLite.ttf"
         
         # 外框：QTE 进度条背景
         frame:
@@ -2051,13 +2052,13 @@ screen dwrg_trial(round_num=1):
             xalign 0.5
             spacing 240
             text "危险区\n(早)" size 12 color "#FF6B6B"
-            text "【安全区】\n(完美)" size 14 color "#6BCB77" font "fonts/LiberationMono-Bold.ttf"
+            text "【安全区】\n(完美)" size 14 color "#6BCB77" font "fonts/SourceHanSansLite.ttf"
             text "危险区\n(迟)" size 12 color "#FF6B6B"
     
     # ========================================
     # 倒计时显示
     # ========================================
-    text "剩余时间：[dwrg_time_remaining:.1f] 秒" xpos 0.5 ypos 420 xanchor 0.5 size 20 color "#FFFFFF" font "fonts/LiberationMono-Bold.ttf"
+    text "剩余时间：[dwrg_time_remaining:.1f] 秒" xpos 0.5 ypos 420 xanchor 0.5 size 20 color "#FFFFFF" font "fonts/SourceHanSansLite.ttf"
     
     # ========================================
     # 操作按钮
