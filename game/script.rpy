@@ -60,8 +60,19 @@ init python:
 # 声明此游戏使用的角色。颜色参数可使角色姓名着色。
 
 define me = Character("贾斯文", color="#808080")
+
+image me neutral =  "images/me_neutral.png" 
+image jia_siwen = "images/jia_siwen.png" 
+
 define lian = Character("小莲", color="#FF69B4")
+
+image lian healthy = "images/lian_healthy.png"  # 健康状态立绘
+image lian sick = "images/lian_sick.png"        # 生病状态立绘
+
 define hong = Character("洪彦龙", color="#8B0000")
+
+image hong angry = "images/hong_angry.png"
+
 define zhang = Character("张清", color="#228B22")
 define lan = Character("兰中玉", color="#4682B4")
 define servant_a = Character("家丁甲", color="#696969")
@@ -181,7 +192,11 @@ label start:
     scene bg broken_cottage with dissolve
     
     # 出现小莲，病态的样子
-    show lian sick at center
+    show lian sick:
+        xpos 0.5
+        ypos 1
+        xanchor 0.5
+        yanchor 0.0
     
     me "小莲，我给你带来了白面窝头。"
     

@@ -5,6 +5,7 @@
 init offset = -1
 
 
+
 ################################################################################
 ## ATL 动画变换
 ################################################################################
@@ -70,6 +71,12 @@ transform ooc_danger_shake:
 style default:
     properties gui.text_properties()
     language gui.language
+
+# style background:
+#     xalign 0.5
+#     yalign 0.5
+#     xfill True
+#     yfill True
 
 style input:
     properties gui.text_properties("input", accent=True)
